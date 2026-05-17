@@ -1,0 +1,6 @@
+* TODO Evergrowing todo list
+- [X] Initial commit
+- [X] Add sokol-zig
+- [x] Get a window
+- [x] Will also have to get shdc set up at some point with a basic shader written
+- [ ] Set up framebuffer pixel rendering

@@ -1,4 +1,5 @@
 const std = @import("std");
+const sokol = @import("sokol");
 
 // Although this function looks imperative, it does not perform the build
 // directly and instead it mutates the build graph (`b`) that will be then
@@ -6,7 +7,7 @@ const std = @import("std");
 // for defining build steps and express dependencies between them, allowing the
 // build runner to parallelize the build automatically (and the cache system to
 // know when a step doesn't need to be re-run).
-pub fn build(b: *std.Build) void {
+pub fn build(b: *std.Build) !void {
     // Standard target options allow the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
     // means any target is allowed, and the default is native. Other options
@@ -20,10 +21,15 @@ pub fn build(b: *std.Build) void {
     // of this build script using `b.option()`. All defined flags (including
     // target and optimize options) will be listed when running `zig build --help`
     // in this directory.
-    
+
     const dep_sokol = b.dependency("sokol", .{
         .target = target,
         .optimize = optimize,
+        .dynamic_linkage = true,
+        // Prefer EGL on Linux.  Some Wayland/XWayland setups don't expose a
+        // usable GLX context, which makes sokol's default GLX path abort at
+        // startup with LINUX_GLX_CREATE_CONTEXT_FAILED.
+        .egl = true,
     });
 
     // This creates a module, which represents a collection of source files alongside
@@ -85,6 +91,7 @@ pub fn build(b: *std.Build) void {
                 // importing modules from different packages).
                 .{ .name = "marble_madness_zig", .module = mod },
                 .{ .name = "sokol", .module = dep_sokol.module("sokol") },
+                .{ .name = "shader", .module = try createShaderModule(b, dep_sokol) },
             },
         }),
     });
@@ -93,6 +100,8 @@ pub fn build(b: *std.Build) void {
     // install prefix when running `zig build` (i.e. when executing the default
     // step). By default the install prefix is `zig-out/` but can be overridden
     // by passing `--prefix` or `-p`.
+    exe.use_llvm = true;
+    exe.use_lld = true;
     b.installArtifact(exe);
 
     // This creates a top level step. Top level steps have a name and can be
@@ -127,6 +136,8 @@ pub fn build(b: *std.Build) void {
     const mod_tests = b.addTest(.{
         .root_module = mod,
     });
+    mod_tests.use_llvm = true;
+    mod_tests.use_lld = true;
 
     // A run step that will run the test executable.
     const run_mod_tests = b.addRunArtifact(mod_tests);
@@ -137,6 +148,8 @@ pub fn build(b: *std.Build) void {
     const exe_tests = b.addTest(.{
         .root_module = exe.root_module,
     });
+    exe_tests.use_llvm = true;
+    exe_tests.use_lld = true;
 
     // A run step that will run the second test executable.
     const run_exe_tests = b.addRunArtifact(exe_tests);
@@ -159,4 +172,22 @@ pub fn build(b: *std.Build) void {
     //
     // Lastly, the Zig build system is relatively simple and self-contained,
     // and reading its source code will allow you to master it.
+}
+
+// TODO: Clean this up to give proper errors when a file is missing.
+fn createShaderModule(b: *std.Build, dep_sokol: *std.Build.Dependency) !*std.Build.Module {
+    const mod_sokol = dep_sokol.module("sokol");
+    const dep_shdc = dep_sokol.builder.dependency("shdc", .{});
+    return sokol.shdc.createModule(b, "triangle", mod_sokol, .{
+        .shdc_dep = dep_shdc,
+        .input = "src/shaders/basic.glsl",
+        .output = "basic.zig",
+        .slang = .{
+            .glsl410 = true,
+            .glsl300es = true,
+            .hlsl4 = true,
+            .metal_macos = true,
+            .wgsl = true,
+        },
+    });
 }
