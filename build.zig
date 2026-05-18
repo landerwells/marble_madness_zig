@@ -52,6 +52,8 @@ pub fn build(b: *std.Build) !void {
         .target = target,
     });
 
+    const shader = try createShaderModule(b, dep_sokol);
+
     // Here we define an executable. An executable needs to have a root module
     // which needs to expose a `main` function. While we could add a main function
     // to the module defined above, it's sometimes preferable to split business
@@ -91,7 +93,7 @@ pub fn build(b: *std.Build) !void {
                 // importing modules from different packages).
                 .{ .name = "marble_madness_zig", .module = mod },
                 .{ .name = "sokol", .module = dep_sokol.module("sokol") },
-                .{ .name = "shader", .module = try createShaderModule(b, dep_sokol) },
+                .{ .name = "shader", .module = shader.module },
             },
         }),
     });
@@ -100,6 +102,7 @@ pub fn build(b: *std.Build) !void {
     // install prefix when running `zig build` (i.e. when executing the default
     // step). By default the install prefix is `zig-out/` but can be overridden
     // by passing `--prefix` or `-p`.
+    exe.step.dependOn(shader.step);
     exe.use_llvm = true;
     exe.use_lld = true;
     b.installArtifact(exe);
@@ -148,6 +151,7 @@ pub fn build(b: *std.Build) !void {
     const exe_tests = b.addTest(.{
         .root_module = exe.root_module,
     });
+    exe_tests.step.dependOn(shader.step);
     exe_tests.use_llvm = true;
     exe_tests.use_lld = true;
 
@@ -174,14 +178,20 @@ pub fn build(b: *std.Build) !void {
     // and reading its source code will allow you to master it.
 }
 
+const ShaderModule = struct {
+    module: *std.Build.Module,
+    step: *std.Build.Step,
+};
+
 // TODO: Clean this up to give proper errors when a file is missing.
-fn createShaderModule(b: *std.Build, dep_sokol: *std.Build.Dependency) !*std.Build.Module {
+fn createShaderModule(b: *std.Build, dep_sokol: *std.Build.Dependency) !ShaderModule {
     const mod_sokol = dep_sokol.module("sokol");
     const dep_shdc = dep_sokol.builder.dependency("shdc", .{});
-    return sokol.shdc.createModule(b, "triangle", mod_sokol, .{
+    const output = "src/shaders/basic.zig";
+    const step = try sokol.shdc.createSourceFile(b, .{
         .shdc_dep = dep_shdc,
         .input = "src/shaders/basic.glsl",
-        .output = "basic.zig",
+        .output = output,
         .slang = .{
             .glsl410 = true,
             .glsl300es = true,
@@ -190,4 +200,8 @@ fn createShaderModule(b: *std.Build, dep_sokol: *std.Build.Dependency) !*std.Bui
             .wgsl = true,
         },
     });
+
+    const shader_module = b.addModule("shader", .{ .root_source_file = b.path(output) });
+    shader_module.addImport("sokol", mod_sokol);
+    return .{ .module = shader_module, .step = step };
 }
