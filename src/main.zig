@@ -1,4 +1,4 @@
-const app = @import("app.zig");
+const state = @import("state.zig");
 
 const sokol = @import("sokol");
 const shd = @import("shader");
@@ -7,24 +7,28 @@ const sg = sokol.gfx;
 const sglue = sokol.glue;
 const slog = sokol.log;
 
-const std = @import("std");
-
 export fn init() void {
     sg.setup(.{
         .environment = sglue.environment(),
         .logger = .{ .func = slog.func },
     });
 
-    app.bind.vertex_buffers[0] = sg.makeBuffer(.{
+    state.bind.vertex_buffers[0] = sg.makeBuffer(.{
         .data = sg.asRange(&[_]f32{
             // positions         colors
-            0.0,  0.5,  0.5, 1.0, 0.0, 0.0, 1.0,
-            0.5,  -0.5, 0.5, 0.0, 1.0, 0.0, 1.0,
-            -0.5, -0.5, 0.5, 0.0, 0.0, 1.0, 1.0,
+            -0.5, 0.5, 0.5, 1.0, 0.0, 0.0, 1.0,
+            0.5, 0.5, 0.5, 0.0, 1.0, 0.0, 1.0,
+            0.5, -0.5, 0.5, 0.0, 0.0, 1.0, 1.0,
+            -0.5, -0.5, 0.5, 1.0, 1.0, 0.0, 1.0,
         }),
     });
 
-    app.pip = sg.makePipeline(.{
+    state.bind.index_buffer = sg.makeBuffer(.{
+        .data = sg.asRange(&[_]u16{ 0, 1, 2, 0, 2, 3 }),
+    });
+
+    state.pip = sg.makePipeline(.{
+        .index_type = .UINT16,
         .shader = sg.makeShader(shd.basicShaderDesc(sg.queryBackend())),
         .layout = init: {
             var l = sg.VertexLayoutState{};
@@ -37,9 +41,9 @@ export fn init() void {
 
 export fn frame() void {
     sg.beginPass(.{ .swapchain = sglue.swapchain() });
-    sg.applyPipeline(app.pip);
-    sg.applyBindings(app.bind);
-    sg.draw(0, 3, 1);
+    sg.applyPipeline(state.pip);
+    sg.applyBindings(state.bind);
+    sg.draw(0, 6, 1);
     sg.endPass();
     sg.commit();
 }
