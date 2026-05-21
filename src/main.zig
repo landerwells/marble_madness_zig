@@ -15,17 +15,40 @@ export fn init() void {
 
     state.bind.vertex_buffers[0] = sg.makeBuffer(.{
         .data = sg.asRange(&[_]f32{
-            // positions         colors
-            -0.5, 0.5, 0.5, 1.0, 0.0, 0.0, 1.0,
-            0.5, 0.5, 0.5, 0.0, 1.0, 0.0, 1.0,
-            0.5, -0.5, 0.5, 0.0, 0.0, 1.0, 1.0,
-            -0.5, -0.5, 0.5, 1.0, 1.0, 0.0, 1.0,
+            // positions     colors              texture
+            -0.5, 0.5,  0.5, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0,
+            0.5,  0.5,  0.5, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0,
+            0.5,  -0.5, 0.5, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0,
+            -0.5, -0.5, 0.5, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0,
         }),
     });
 
     state.bind.index_buffer = sg.makeBuffer(.{
+        .usage = .{ .index_buffer = true },
         .data = sg.asRange(&[_]u16{ 0, 1, 2, 0, 2, 3 }),
     });
+
+    state.bind.views[shd.VIEW_tex] = sg.makeView(.{
+        .texture = .{
+            .image = sg.makeImage(.{
+                .width = 4,
+                .height = 4,
+                .data = init: {
+                    var data = sg.ImageData{};
+                    data.mip_levels[0] = sg.asRange(&[4 * 4]u32{
+                        0xFFFFFFFF, 0xFF000000, 0xFFFFFFFF, 0xFF000000,
+                        0xFF000000, 0xFFFFFFFF, 0xFF000000, 0xFFFFFFFF,
+                        0xFFFFFFFF, 0xFF000000, 0xFFFFFFFF, 0xFF000000,
+                        0xFF000000, 0xFFFFFFFF, 0xFF000000, 0xFFFFFFFF,
+                    });
+                    break :init data;
+                },
+            }),
+        },
+    });
+
+    // ...and a sampler object with default attributes
+    state.bind.samplers[shd.SMP_smp] = sg.makeSampler(.{});
 
     state.pip = sg.makePipeline(.{
         .index_type = .UINT16,
@@ -34,6 +57,7 @@ export fn init() void {
             var l = sg.VertexLayoutState{};
             l.attrs[shd.ATTR_basic_position].format = .FLOAT3;
             l.attrs[shd.ATTR_basic_color0].format = .FLOAT4;
+            l.attrs[shd.ATTR_basic_texture0].format = .FLOAT2;
             break :init l;
         },
     });
