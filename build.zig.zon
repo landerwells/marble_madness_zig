@@ -36,6 +36,10 @@
             .url = "git+https://github.com/floooh/sokol-zig.git#8b1a651e6b8e76af3063a4094a5935432eb8afe2",
             .hash = "sokol-0.1.0-pb1HK1lhNwCdIF2-WujvJqi1YoK7Qvgm14Ywmup5C6_q",
         },
+        .zigimg = .{
+            .url = "git+https://github.com/zigimg/zigimg.git#0bbe201a5591219177f2444371c2897746b47774",
+            .hash = "zigimg-0.1.0-8_eo2sGbFwCrsBjkTTP-kinCH62m5vmYDHQnQcngFuwh",
+        },
     },
     .paths = .{
         "build.zig",
