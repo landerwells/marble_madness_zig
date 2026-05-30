@@ -31,6 +31,7 @@ pub fn build(b: *std.Build) !void {
         // startup with LINUX_GLX_CREATE_CONTEXT_FAILED.
         .egl = true,
     });
+    try addDarwinSdkFrameworkPaths(b, target, dep_sokol);
 
     const dep_zigimg = b.dependency("zigimg", .{
         .target = target,
@@ -110,7 +111,9 @@ pub fn build(b: *std.Build) !void {
     // by passing `--prefix` or `-p`.
     exe.step.dependOn(shader.step);
     exe.use_llvm = true;
-    exe.use_lld = true;
+    if (!target.result.os.tag.isDarwin()) {
+        exe.use_lld = true;
+    }
     b.installArtifact(exe);
 
     // This creates a top level step. Top level steps have a name and can be
@@ -146,7 +149,9 @@ pub fn build(b: *std.Build) !void {
         .root_module = mod,
     });
     mod_tests.use_llvm = true;
-    mod_tests.use_lld = true;
+    if (!target.result.os.tag.isDarwin()) {
+        mod_tests.use_lld = true;
+    }
 
     // A run step that will run the test executable.
     const run_mod_tests = b.addRunArtifact(mod_tests);
@@ -159,7 +164,9 @@ pub fn build(b: *std.Build) !void {
     });
     exe_tests.step.dependOn(shader.step);
     exe_tests.use_llvm = true;
-    exe_tests.use_lld = true;
+    if (!target.result.os.tag.isDarwin()) {
+        exe_tests.use_lld = true;
+    }
 
     // A run step that will run the second test executable.
     const run_exe_tests = b.addRunArtifact(exe_tests);
@@ -182,6 +189,25 @@ pub fn build(b: *std.Build) !void {
     //
     // Lastly, the Zig build system is relatively simple and self-contained,
     // and reading its source code will allow you to master it.
+}
+
+fn addDarwinSdkFrameworkPaths(b: *std.Build, target: std.Build.ResolvedTarget, dep_sokol: *std.Build.Dependency) !void {
+    if (!target.result.os.tag.isDarwin()) return;
+
+    const sdkroot = b.graph.environ_map.get("SDKROOT") orelse return;
+
+    const framework_path = b.pathJoin(&.{ sdkroot, "System", "Library", "Frameworks" });
+    const framework_lazy_path: std.Build.LazyPath = .{ .cwd_relative = framework_path };
+
+    const mod_sokol = dep_sokol.module("sokol");
+    mod_sokol.addSystemFrameworkPath(framework_lazy_path);
+
+    for (mod_sokol.link_objects.items) |link_object| {
+        switch (link_object) {
+            .other_step => |compile| compile.root_module.addSystemFrameworkPath(framework_lazy_path),
+            else => {},
+        }
+    }
 }
 
 const ShaderModule = struct {
