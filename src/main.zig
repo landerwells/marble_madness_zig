@@ -7,11 +7,17 @@ const sg = sokol.gfx;
 const sglue = sokol.glue;
 const slog = sokol.log;
 
+const zigimg = @import("zigimg");
+
 export fn init() void {
     sg.setup(.{
         .environment = sglue.environment(),
         .logger = .{ .func = slog.func },
     });
+
+    // I believe in order to actually read my image, I am going to need
+    var read_buffer: [zigimg.io.DEFAULT_BUFFER_SIZE]u8 = undefined;
+    var _ = try zigimg.Image.fromFilePath(init.gpa, init.io, "my_image.png", read_buffer[0..]);
 
     state.bind.vertex_buffers[0] = sg.makeBuffer(.{
         .data = sg.asRange(&[_]f32{
