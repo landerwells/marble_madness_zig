@@ -11,13 +11,17 @@ const slog = sokol.log;
 const zigimg = @import("zigimg");
 const std = @import("std");
 
-fn loadImage(allocator: std.mem.Allocator, path: []const u8) !sg.Image {
+const App = struct {
+    io: std.Io,
+};
+
+fn loadImage(io: std.Io, allocator: std.mem.Allocator, path: []const u8) !sg.Image {
     // need a read buffer.
     var read_buffer: [zigimg.io.DEFAULT_BUFFER_SIZE]u8 = undefined;
-    var image = try zigimg.Image.fromFilePath(allocator, path, read_buffer);
-    defer image.deinit();
+    var image = try zigimg.Image.fromFilePath(allocator, io, path, read_buffer[0..]);
+    defer image.deinit(allocator);
 
-    try image.convert(.rgba32);
+    try image.convert(allocator, .rgba32);
 
     const pixels = image.pixels.rgba32;
 
@@ -31,7 +35,9 @@ fn loadImage(allocator: std.mem.Allocator, path: []const u8) !sg.Image {
     });
 }
 
-export fn setup() void {
+fn setup(user_data: ?*anyopaque) callconv(.c) void {
+    const app: *App = @ptrCast(@alignCast(user_data));
+
     sg.setup(.{
         .environment = sglue.environment(),
         .logger = .{ .func = slog.func },
@@ -42,7 +48,15 @@ export fn setup() void {
 
     const alloc = arena.allocator();
 
-    const img = try loadImage(alloc, "assets/isometric-sandbox-32x32/isometric-sandbox-sheet.png");
+    const img = loadImage(
+        app.io,
+        alloc,
+        "assets/isometric-sandbox-32x32/isometric-sandbox-sheet.png",
+    ) catch |err| {
+        std.log.err("failed to load image: {}", .{err});
+        sapp.requestQuit();
+        return;
+    };
 
     state.bind.vertex_buffers[0] = sg.makeBuffer(.{
         .data = sg.asRange(&[_]f32{
@@ -79,7 +93,7 @@ export fn setup() void {
     });
 }
 
-export fn frame() void {
+export fn frame(_: ?*anyopaque) callconv(.c) void {
     sg.beginPass(.{ .swapchain = sglue.swapchain() });
     sg.applyPipeline(state.pip);
     sg.applyBindings(state.bind);
@@ -88,7 +102,7 @@ export fn frame() void {
     sg.commit();
 }
 
-export fn input(ev: ?*const sapp.Event) void {
+export fn input(ev: ?*const sapp.Event, _: ?*anyopaque) callconv(.c) void {
     const e = ev.?;
     // First want to check
     if (e.type != .KEY_DOWN) return;
@@ -99,17 +113,19 @@ export fn input(ev: ?*const sapp.Event) void {
     }
 }
 
-export fn cleanup() void {
+export fn cleanup(_: ?*anyopaque) void {
     sg.shutdown();
 }
 
 pub fn main(init: std.process.Init) void {
-    state.init = init;
+    var app = App{ .io = init.io };
+
     sapp.run(.{
-        .init_cb = setup,
-        .frame_cb = frame,
-        .cleanup_cb = cleanup,
-        .event_cb = input,
+        .user_data = &app,
+        .init_userdata_cb = setup,
+        .frame_userdata_cb = frame,
+        .cleanup_userdata_cb = cleanup,
+        .event_userdata_cb = input,
         .width = 640,
         .height = 480,
         .icon = .{ .sokol_default = true },
