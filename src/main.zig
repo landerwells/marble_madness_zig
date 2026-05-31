@@ -5,19 +5,44 @@ const shd = @import("shader");
 const sapp = sokol.app;
 const sg = sokol.gfx;
 const sglue = sokol.glue;
+const sfetch = sokol.fetch;
 const slog = sokol.log;
 
 const zigimg = @import("zigimg");
+const std = @import("std");
 
-export fn init() void {
+fn loadImage(allocator: std.mem.Allocator, path: []const u8) !sg.Image {
+    // need a read buffer.
+    var read_buffer: [zigimg.io.DEFAULT_BUFFER_SIZE]u8 = undefined;
+    var image = try zigimg.Image.fromFilePath(allocator, path, read_buffer);
+    defer image.deinit();
+
+    try image.convert(.rgba32);
+
+    const pixels = image.pixels.rgba32;
+
+    var img_data = sg.ImageData{};
+    img_data.mip_levels[0] = sg.asRange(pixels);
+
+    return sg.makeImage(.{
+        .width = @intCast(image.width),
+        .height = @intCast(image.height),
+        .data = img_data,
+    });
+}
+
+export fn setup() void {
     sg.setup(.{
         .environment = sglue.environment(),
         .logger = .{ .func = slog.func },
     });
 
-    // I believe in order to actually read my image, I am going to need
-    var read_buffer: [zigimg.io.DEFAULT_BUFFER_SIZE]u8 = undefined;
-    var _ = try zigimg.Image.fromFilePath(init.gpa, init.io, "my_image.png", read_buffer[0..]);
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+
+    const alloc = arena.allocator();
+
+    const img = try loadImage(alloc, "assets/isometric-sandbox-32x32/isometric-sandbox-sheet.png");
 
     state.bind.vertex_buffers[0] = sg.makeBuffer(.{
         .data = sg.asRange(&[_]f32{
@@ -35,22 +60,7 @@ export fn init() void {
     });
 
     state.bind.views[shd.VIEW_tex] = sg.makeView(.{
-        .texture = .{
-            .image = sg.makeImage(.{
-                .width = 4,
-                .height = 4,
-                .data = init: {
-                    var data = sg.ImageData{};
-                    data.mip_levels[0] = sg.asRange(&[4 * 4]u32{
-                        0xFFFFFFFF, 0xFF000000, 0xFFFFFFFF, 0xFF000000,
-                        0xFF000000, 0xFFFFFFFF, 0xFF000000, 0xFFFFFFFF,
-                        0xFFFFFFFF, 0xFF000000, 0xFFFFFFFF, 0xFF000000,
-                        0xFF000000, 0xFFFFFFFF, 0xFF000000, 0xFFFFFFFF,
-                    });
-                    break :init data;
-                },
-            }),
-        },
+        .texture = .{ .image = img },
     });
 
     // ...and a sampler object with default attributes
@@ -93,9 +103,10 @@ export fn cleanup() void {
     sg.shutdown();
 }
 
-pub fn main() void {
+pub fn main(init: std.process.Init) void {
+    state.init = init;
     sapp.run(.{
-        .init_cb = init,
+        .init_cb = setup,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
         .event_cb = input,
