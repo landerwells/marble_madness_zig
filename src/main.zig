@@ -133,6 +133,17 @@ const App = struct {
                 l.attrs[shd.ATTR_basic_texture0].format = .FLOAT2;
                 break :init l;
             },
+            .colors = init: {
+                var colors: [8]sg.ColorTargetState = @splat(.{});
+                colors[0].blend = .{
+                    .enabled = true,
+                    .src_factor_rgb = .SRC_ALPHA,
+                    .dst_factor_rgb = .ONE_MINUS_SRC_ALPHA,
+                    .src_factor_alpha = .ONE,
+                    .dst_factor_alpha = .ONE_MINUS_SRC_ALPHA,
+                };
+                break :init colors;
+            },
         });
     }
 
