@@ -1,3 +1,4 @@
+const asset = @import("asset.zig");
 const sokol = @import("sokol");
 const shd = @import("shader");
 const sapp = sokol.app;
@@ -6,7 +7,6 @@ const sglue = sokol.glue;
 const sfetch = sokol.fetch;
 const slog = sokol.log;
 
-const zigimg = @import("zigimg");
 const std = @import("std");
 
 const Vertex = struct {
@@ -47,6 +47,9 @@ const App = struct {
     bind: sg.Bindings = .{},
     pip: sg.Pipeline = .{},
 
+    background_view: sg.View = .{},
+    marble_view: sg.View = .{},
+
     fn init(user_data: ?*anyopaque) callconv(.c) void {
         const app: *App = @ptrCast(@alignCast(user_data));
 
@@ -60,7 +63,7 @@ const App = struct {
 
         const alloc = arena.allocator();
 
-        const img = loadImage(
+        const background_img = asset.loadImage(
             app.io,
             alloc,
             "assets/isometric-sandbox-32x32/isometric-sandbox-sheet.png",
@@ -70,35 +73,73 @@ const App = struct {
             return;
         };
 
-        const sheet = SpriteSheet{
+        const background_sheet = SpriteSheet{
             .texture_width = 192,
             .texture_height = 288,
             .sprite_width = 32,
             .sprite_height = 32,
         };
 
-        const sprite_uvs = sheet.uvRect(0, 0);
+        const marble_img = asset.loadImage(
+            app.io,
+            alloc,
+            "assets/misc.png",
+        ) catch |err| {
+            std.log.err("failed to load image: {}", .{err});
+            sapp.requestQuit();
+            return;
+        };
+
+        const marble_sheet = SpriteSheet{
+            .texture_width = 352,
+            .texture_height = 864,
+            .sprite_width = 32,
+            .sprite_height = 32,
+        };
+
+        const background_uvs = background_sheet.uvRect(0, 0);
+        const marble_uvs = marble_sheet.uvRect(0, 2);
 
         const vertices = [_]Vertex{
             .{
                 .position = .{ -0.5, 0.5, 0.5 },
                 .color = .{ 1.0, 0.0, 0.0, 1.0 },
-                .uv = sprite_uvs[0],
+                .uv = background_uvs[0],
             },
             .{
                 .position = .{ 0.5, 0.5, 0.5 },
                 .color = .{ 0.0, 1.0, 0.0, 1.0 },
-                .uv = sprite_uvs[1],
+                .uv = background_uvs[1],
             },
             .{
                 .position = .{ 0.5, -0.5, 0.5 },
                 .color = .{ 0.0, 0.0, 1.0, 1.0 },
-                .uv = sprite_uvs[2],
+                .uv = background_uvs[2],
             },
             .{
                 .position = .{ -0.5, -0.5, 0.5 },
                 .color = .{ 1.0, 1.0, 0.0, 1.0 },
-                .uv = sprite_uvs[3],
+                .uv = background_uvs[3],
+            },
+            .{
+                .position = .{ -0.5, 0.5, 0.5 },
+                .color = .{ 1.0, 0.0, 0.0, 1.0 },
+                .uv = marble_uvs[0],
+            },
+            .{
+                .position = .{ 0.5, 0.5, 0.5 },
+                .color = .{ 0.0, 1.0, 0.0, 1.0 },
+                .uv = marble_uvs[1],
+            },
+            .{
+                .position = .{ 0.5, -0.5, 0.5 },
+                .color = .{ 0.0, 0.0, 1.0, 1.0 },
+                .uv = marble_uvs[2],
+            },
+            .{
+                .position = .{ -0.5, -0.5, 0.5 },
+                .color = .{ 1.0, 1.0, 0.0, 1.0 },
+                .uv = marble_uvs[3],
             },
         };
 
@@ -106,13 +147,22 @@ const App = struct {
             .data = sg.asRange(&vertices),
         });
 
+        const indices = [_]u16{
+            0, 1, 2, 0, 2, 3,
+            4, 5, 6, 4, 6, 7,
+        };
+
         app.bind.index_buffer = sg.makeBuffer(.{
             .usage = .{ .index_buffer = true },
-            .data = sg.asRange(&[_]u16{ 0, 1, 2, 0, 2, 3 }),
+            .data = sg.asRange(&indices),
         });
 
-        app.bind.views[shd.VIEW_tex] = sg.makeView(.{
-            .texture = .{ .image = img },
+        app.background_view = sg.makeView(.{
+            .texture = .{ .image = background_img },
+        });
+
+        app.marble_view = sg.makeView(.{
+            .texture = .{ .image = marble_img },
         });
 
         // ...and a sampler object with default attributes
@@ -151,15 +201,22 @@ const App = struct {
         sg.shutdown();
     }
 
-    // Drawing/rendering should be separate from updates
-    // What is the appropriate name for this function?
-    // I believe this is what is called render
     export fn frame(user_data: ?*anyopaque) callconv(.c) void {
         const app: *App = @ptrCast(@alignCast(user_data));
+
         sg.beginPass(.{ .swapchain = sglue.swapchain() });
         sg.applyPipeline(app.pip);
+
+        // Draw background quad using background sprite sheet.
+        app.bind.views[shd.VIEW_tex] = app.background_view;
         sg.applyBindings(app.bind);
         sg.draw(0, 6, 1);
+
+        // Draw marble quad using marble sprite sheet.
+        app.bind.views[shd.VIEW_tex] = app.marble_view;
+        sg.applyBindings(app.bind);
+        sg.draw(6, 6, 1);
+
         sg.endPass();
         sg.commit();
     }
@@ -175,27 +232,6 @@ const App = struct {
         }
     }
 };
-
-// This needs to be moved out somewhere
-fn loadImage(io: std.Io, allocator: std.mem.Allocator, path: []const u8) !sg.Image {
-    // need a read buffer.
-    var read_buffer: [zigimg.io.DEFAULT_BUFFER_SIZE]u8 = undefined;
-    var image = try zigimg.Image.fromFilePath(allocator, io, path, read_buffer[0..]);
-    defer image.deinit(allocator);
-
-    try image.convert(allocator, .rgba32);
-
-    const pixels = image.pixels.rgba32;
-
-    var img_data = sg.ImageData{};
-    img_data.mip_levels[0] = sg.asRange(pixels);
-
-    return sg.makeImage(.{
-        .width = @intCast(image.width),
-        .height = @intCast(image.height),
-        .data = img_data,
-    });
-}
 
 pub fn main(init: std.process.Init) void {
     var app = App{ .io = init.io };
