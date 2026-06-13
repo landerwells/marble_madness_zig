@@ -1,6 +1,6 @@
 @vs vs
 // layout (binding=0) uniform vs_params {
-//}
+// }
 
 in vec4 position;
 in vec4 color0;

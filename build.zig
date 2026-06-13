@@ -38,6 +38,11 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
 
+    const dep_zmath = b.dependency("zmath", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
     // This creates a module, which represents a collection of source files alongside
     // some compilation options, such as optimization mode and linked system libraries.
     // Zig modules are the preferred way of making Zig code available to consumers.
@@ -100,6 +105,7 @@ pub fn build(b: *std.Build) !void {
                 .{ .name = "marble_madness_zig", .module = mod },
                 .{ .name = "sokol", .module = dep_sokol.module("sokol") },
                 .{ .name = "zigimg", .module = dep_zigimg.module("zigimg") },
+                .{ .name = "zmath", .module = dep_zmath.module("root") },
                 .{ .name = "shader", .module = shader.module },
             },
         }),

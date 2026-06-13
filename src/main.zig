@@ -1,11 +1,13 @@
 const asset = @import("asset.zig");
 const sokol = @import("sokol");
-const shd = @import("shader");
+
+const zmath = @import("zmath");
 const sapp = sokol.app;
 const sg = sokol.gfx;
 const sglue = sokol.glue;
 const sfetch = sokol.fetch;
 const slog = sokol.log;
+const shd = @import("shader");
 
 const std = @import("std");
 
@@ -215,6 +217,7 @@ const App = struct {
         // Draw marble quad using marble sprite sheet.
         app.bind.views[shd.VIEW_tex] = app.marble_view;
         sg.applyBindings(app.bind);
+        sg.applyUniforms(shd.UB_vs_params, sg.asRAnge(&vs_params));
         sg.draw(6, 6, 1);
 
         sg.endPass();
@@ -248,4 +251,13 @@ pub fn main(init: std.process.Init) void {
         .window_title = "Marble Madness",
         .logger = .{ .func = slog.func },
     });
+}
+
+fn computeVsParams(rx: f32, ry: f32) shd.VsParams {
+    const rxm = mat4.rotate(rx, .{ .x = 1.0, .y = 0.0, .z = 0.0 });
+    const rym = mat4.rotate(ry, .{ .x = 0.0, .y = 1.0, .z = 0.0 });
+    const model = mat4.mul(rxm, rym);
+    const aspect = sapp.widthf() / sapp.heightf();
+    const proj = mat4.persp(60.0, aspect, 0.01, 10.0);
+    return shd.VsParams{ .mvp = mat4.mul(mat4.mul(proj, state.view), model) };
 }
