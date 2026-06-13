@@ -196,7 +196,7 @@ const App = struct {
                 };
                 break :init colors;
             },
-        });
+            });
     }
 
     fn deinit(_: ?*anyopaque) callconv(.c) void {
@@ -217,7 +217,7 @@ const App = struct {
         // Draw marble quad using marble sprite sheet.
         app.bind.views[shd.VIEW_tex] = app.marble_view;
         sg.applyBindings(app.bind);
-        sg.applyUniforms(shd.UB_vs_params, sg.asRAnge(&vs_params));
+        // sg.applyUniforms(shd.UB_vs_params, sg.asRAnge(&vs_params));
         sg.draw(6, 6, 1);
 
         sg.endPass();
@@ -253,11 +253,12 @@ pub fn main(init: std.process.Init) void {
     });
 }
 
-fn computeVsParams(rx: f32, ry: f32) shd.VsParams {
-    const rxm = mat4.rotate(rx, .{ .x = 1.0, .y = 0.0, .z = 0.0 });
-    const rym = mat4.rotate(ry, .{ .x = 0.0, .y = 1.0, .z = 0.0 });
-    const model = mat4.mul(rxm, rym);
-    const aspect = sapp.widthf() / sapp.heightf();
-    const proj = mat4.persp(60.0, aspect, 0.01, 10.0);
-    return shd.VsParams{ .mvp = mat4.mul(mat4.mul(proj, state.view), model) };
-}
+// fn computeVsParams(rx: f32, ry: f32) shd.VsParams {
+//     const rxm = zmath.
+//         const rxm = mat4.rotate(rx, .{ .x = 1.0, .y = 0.0, .z = 0.0 });
+//     const rym = mat4.rotate(ry, .{ .x = 0.0, .y = 1.0, .z = 0.0 });
+//     const model = mat4.mul(rxm, rym);
+//     const aspect = sapp.widthf() / sapp.heightf();
+//     const proj = mat4.persp(60.0, aspect, 0.01, 10.0);
+//     return shd.VsParams{ .mvp = mat4.mul(mat4.mul(proj, state.view), model) };
+// }

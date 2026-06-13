@@ -1,6 +1,7 @@
 @vs vs
-// layout (binding=0) uniform vs_params {
-// }
+// layout(binding=0) uniform vs_params {
+//     mat4 mvp;
+// };
 
 in vec4 position;
 in vec4 color0;
