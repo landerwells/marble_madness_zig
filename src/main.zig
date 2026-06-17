@@ -17,10 +17,7 @@ const Vertex = struct {
     uv: [2]f32,
 };
 
-const Texture = struct {
-    width: i32,
-    height: i32,
-};
+// 336 x 240
 
 const SpriteSheet = struct {
     texture_width: f32,
@@ -44,13 +41,14 @@ const SpriteSheet = struct {
 };
 
 const App = struct {
-    // 192x288
     io: std.Io,
     bind: sg.Bindings = .{},
     pip: sg.Pipeline = .{},
 
     background_view: sg.View = .{},
     marble_view: sg.View = .{},
+
+    marble_pos: [2]f32 = .{ 0.0, 0.0 },
 
     fn init(user_data: ?*anyopaque) callconv(.c) void {
         const app: *App = @ptrCast(@alignCast(user_data));
@@ -196,12 +194,16 @@ const App = struct {
                 };
                 break :init colors;
             },
-            });
+        });
     }
 
     fn deinit(_: ?*anyopaque) callconv(.c) void {
         sg.shutdown();
     }
+
+    var time: f32 = 0.0;
+    // delta_time is the time between frames
+    var delta_time: f32 = 1.0 / 60.0;
 
     export fn frame(user_data: ?*anyopaque) callconv(.c) void {
         const app: *App = @ptrCast(@alignCast(user_data));
@@ -209,28 +211,41 @@ const App = struct {
         sg.beginPass(.{ .swapchain = sglue.swapchain() });
         sg.applyPipeline(app.pip);
 
-        // Draw background quad using background sprite sheet.
+        const background_params = shd.VsParams{
+            .offset = .{ 0.0, 0.0 },
+        };
+
         app.bind.views[shd.VIEW_tex] = app.background_view;
         sg.applyBindings(app.bind);
+        sg.applyUniforms(shd.UB_vs_params, sg.asRange(&background_params));
         sg.draw(0, 6, 1);
 
-        // Draw marble quad using marble sprite sheet.
+        const marble_params = shd.VsParams{
+            .offset = app.marble_pos,
+        };
+
         app.bind.views[shd.VIEW_tex] = app.marble_view;
         sg.applyBindings(app.bind);
-        // sg.applyUniforms(shd.UB_vs_params, sg.asRAnge(&vs_params));
+        sg.applyUniforms(shd.UB_vs_params, sg.asRange(&marble_params));
         sg.draw(6, 6, 1);
 
         sg.endPass();
         sg.commit();
+
+        time += delta_time;
     }
 
-    fn event(ev: ?*const sapp.Event, _: ?*anyopaque) callconv(.c) void {
+    fn event(ev: ?*const sapp.Event, user_data: ?*anyopaque) callconv(.c) void {
+        const app: *App = @ptrCast(@alignCast(user_data));
         const e = ev.?;
-        // First want to check
         if (e.type != .KEY_DOWN) return;
 
         switch (e.key_code) {
             .ESCAPE => sapp.requestQuit(),
+            .W => app.marble_pos[1] += 0.1,
+            .A => app.marble_pos[0] -= 0.1,
+            .S => app.marble_pos[1] -= 0.1,
+            .D => app.marble_pos[0] += 0.1,
             else => {},
         }
     }
@@ -245,20 +260,10 @@ pub fn main(init: std.process.Init) void {
         .frame_userdata_cb = App.frame,
         .cleanup_userdata_cb = App.deinit,
         .event_userdata_cb = App.event,
-        .width = 640,
-        .height = 480,
+        .width = 1080,
+        .height = 920,
         .icon = .{ .sokol_default = true },
         .window_title = "Marble Madness",
         .logger = .{ .func = slog.func },
     });
 }
-
-// fn computeVsParams(rx: f32, ry: f32) shd.VsParams {
-//     const rxm = zmath.
-//         const rxm = mat4.rotate(rx, .{ .x = 1.0, .y = 0.0, .z = 0.0 });
-//     const rym = mat4.rotate(ry, .{ .x = 0.0, .y = 1.0, .z = 0.0 });
-//     const model = mat4.mul(rxm, rym);
-//     const aspect = sapp.widthf() / sapp.heightf();
-//     const proj = mat4.persp(60.0, aspect, 0.01, 10.0);
-//     return shd.VsParams{ .mvp = mat4.mul(mat4.mul(proj, state.view), model) };
-// }

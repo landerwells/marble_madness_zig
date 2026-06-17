@@ -1,7 +1,7 @@
 @vs vs
-// layout(binding=0) uniform vs_params {
-//     mat4 mvp;
-// };
+layout(binding=0) uniform vs_params {
+    vec2 offset;
+};
 
 in vec4 position;
 in vec4 color0;
@@ -9,9 +9,8 @@ in vec2 texture0;
 
 out vec2 uv;
 
-
 void main() {
-    gl_Position = position;
+    gl_Position = position + vec4(offset, 0.0, 0.0);
     uv = texture0;
 }
 @end

@@ -3,3 +3,11 @@
 - [X] Add sokol-zig
 - [X] Get a window
 - [X] Will also have to get shdc set up at some point with a basic shader written
+- [X] Get background set up
+- [X] Have a marble render
+- [X] Get marble movement working distinct from the background
+- [ ] Get things pixel aligned
+- [ ] Fix my timestep
+- [ ] Get sprite sheet animation working
+- [ ] Load files in from Tiled
+- [ ] Work on first level
