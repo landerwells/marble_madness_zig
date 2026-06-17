@@ -17,7 +17,10 @@ const Vertex = struct {
     uv: [2]f32,
 };
 
-// 336 x 240
+// Might need to come back to these to actually get them the way I want
+const INTERNAL_WIDTH = 320;
+const INTERNAL_HEIGHT = 240;
+const SPRITE_SIZE = 32;
 
 const SpriteSheet = struct {
     texture_width: f32,
@@ -48,7 +51,7 @@ const App = struct {
     background_view: sg.View = .{},
     marble_view: sg.View = .{},
 
-    marble_pos: [2]f32 = .{ 0.0, 0.0 },
+    marble_pos: [2]f32 = .{ 160.0, 120.0 },
 
     fn init(user_data: ?*anyopaque) callconv(.c) void {
         const app: *App = @ptrCast(@alignCast(user_data));
@@ -102,42 +105,42 @@ const App = struct {
 
         const vertices = [_]Vertex{
             .{
-                .position = .{ -0.5, 0.5, 0.5 },
+                .position = .{ 0, 0, 0.5 },
                 .color = .{ 1.0, 0.0, 0.0, 1.0 },
                 .uv = background_uvs[0],
             },
             .{
-                .position = .{ 0.5, 0.5, 0.5 },
+                .position = .{ SPRITE_SIZE, 0, 0.5 },
                 .color = .{ 0.0, 1.0, 0.0, 1.0 },
                 .uv = background_uvs[1],
             },
             .{
-                .position = .{ 0.5, -0.5, 0.5 },
+                .position = .{ SPRITE_SIZE, SPRITE_SIZE, 0.5 },
                 .color = .{ 0.0, 0.0, 1.0, 1.0 },
                 .uv = background_uvs[2],
             },
             .{
-                .position = .{ -0.5, -0.5, 0.5 },
+                .position = .{ 0, SPRITE_SIZE, 0.5 },
                 .color = .{ 1.0, 1.0, 0.0, 1.0 },
                 .uv = background_uvs[3],
             },
             .{
-                .position = .{ -0.5, 0.5, 0.5 },
+                .position = .{ 0, 0, 0.5 },
                 .color = .{ 1.0, 0.0, 0.0, 1.0 },
                 .uv = marble_uvs[0],
             },
             .{
-                .position = .{ 0.5, 0.5, 0.5 },
+                .position = .{ SPRITE_SIZE, 0, 0.5 },
                 .color = .{ 0.0, 1.0, 0.0, 1.0 },
                 .uv = marble_uvs[1],
             },
             .{
-                .position = .{ 0.5, -0.5, 0.5 },
-                .color = .{ 0.0, 0.0, 1.0, 1.0 },
+                .position = .{ SPRITE_SIZE, SPRITE_SIZE, 0.5 },
+                .color = .{ 0.0, SPRITE_SIZE, 1.0, 1.0 },
                 .uv = marble_uvs[2],
             },
             .{
-                .position = .{ -0.5, -0.5, 0.5 },
+                .position = .{ 0, SPRITE_SIZE, 0.5 },
                 .color = .{ 1.0, 1.0, 0.0, 1.0 },
                 .uv = marble_uvs[3],
             },
@@ -238,14 +241,40 @@ const App = struct {
     fn event(ev: ?*const sapp.Event, user_data: ?*anyopaque) callconv(.c) void {
         const app: *App = @ptrCast(@alignCast(user_data));
         const e = ev.?;
-        if (e.type != .KEY_DOWN) return;
 
-        switch (e.key_code) {
-            .ESCAPE => sapp.requestQuit(),
-            .W => app.marble_pos[1] += 0.1,
-            .A => app.marble_pos[0] -= 0.1,
-            .S => app.marble_pos[1] -= 0.1,
-            .D => app.marble_pos[0] += 0.1,
+        switch (e.type) {
+            .MOUSE_MOVE => {
+                // I only care about the dx and dy of the mouse, nothing else
+                // This is going to be used in the physics calculations
+
+                app.marble_pos[0] += e.mouse_dx;
+                app.marble_pos[1] += e.mouse_dy;
+            },
+
+            .MOUSE_DOWN => {
+                if (e.mouse_button == .LEFT) {
+                    sapp.lockMouse(true);
+                }
+            },
+
+            .KEY_DOWN => {
+                switch (e.key_code) {
+                    .ESCAPE => {
+                        sapp.lockMouse(false);
+                        sapp.requestQuit();
+                    },
+                    .W => app.marble_pos[1] -= 1.0,
+                    .A => app.marble_pos[0] -= 1.0,
+                    .S => app.marble_pos[1] += 1.0,
+                    .D => app.marble_pos[0] += 1.0,
+                    else => {},
+                }
+            },
+
+            .UNFOCUSED => {
+                sapp.lockMouse(false);
+            },
+
             else => {},
         }
     }

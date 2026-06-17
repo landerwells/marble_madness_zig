@@ -1,6 +1,6 @@
 @vs vs
 layout(binding=0) uniform vs_params {
-    vec2 offset;
+  vec2 offset;
 };
 
 in vec4 position;
@@ -10,8 +10,15 @@ in vec2 texture0;
 out vec2 uv;
 
 void main() {
-    gl_Position = position + vec4(offset, 0.0, 0.0);
-    uv = texture0;
+  vec2 pixel_pos = position.xy + offset;
+
+  vec2 ndc = vec2(
+    pixel_pos.x / 320.0 * 2.0 - 1.0,
+    1.0 - pixel_pos.y / 240.0 * 2.0
+  );
+
+  gl_Position = vec4(ndc, position.z, 1.0);
+  uv = texture0;
 }
 @end
 
@@ -24,7 +31,7 @@ in vec2 uv;
 out vec4 frag_color;
 
 void main() {
-    frag_color = texture(sampler2D(tex, smp), uv);
+  frag_color = texture(sampler2D(tex, smp), uv);
 }
 @end
 
