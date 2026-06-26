@@ -5,6 +5,8 @@ layout(binding=0) uniform vs_params {
 
 in vec4 position;
 in vec4 color0;
+// So UV coordinates are loaded in via this here, but what if we passed
+// them in via a uniform?
 in vec2 texture0;
 
 out vec2 uv;

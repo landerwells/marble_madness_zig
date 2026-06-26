@@ -8,6 +8,7 @@ const sglue = sokol.glue;
 const sfetch = sokol.fetch;
 const slog = sokol.log;
 const shd = @import("shader");
+const Input = @import("input.zig");
 
 const std = @import("std");
 
@@ -43,15 +44,24 @@ const SpriteSheet = struct {
     }
 };
 
+const Marble = struct {
+    position: [2]f32 = .{ 160.0, 120.0 },
+    velocity: [2]f32 = .{ 0.0, 0.0 },
+    // Should the Marble have a sprite
+
+};
+
 const App = struct {
     io: std.Io,
     bind: sg.Bindings = .{},
     pip: sg.Pipeline = .{},
 
+    input: Input = .{},
+
     background_view: sg.View = .{},
     marble_view: sg.View = .{},
 
-    marble_pos: [2]f32 = .{ 160.0, 120.0 },
+    marble: Marble = .{},
 
     fn init(user_data: ?*anyopaque) callconv(.c) void {
         const app: *App = @ptrCast(@alignCast(user_data));
@@ -223,9 +233,7 @@ const App = struct {
         sg.applyUniforms(shd.UB_vs_params, sg.asRange(&background_params));
         sg.draw(0, 6, 1);
 
-        const marble_params = shd.VsParams{
-            .offset = app.marble_pos,
-        };
+        const marble_params = shd.VsParams{ .offset = app.marble.position };
 
         app.bind.views[shd.VIEW_tex] = app.marble_view;
         sg.applyBindings(app.bind);
@@ -236,47 +244,14 @@ const App = struct {
         sg.commit();
 
         time += delta_time;
+        // app.input.frameEnd();
     }
 
     fn event(ev: ?*const sapp.Event, user_data: ?*anyopaque) callconv(.c) void {
         const app: *App = @ptrCast(@alignCast(user_data));
-        const e = ev.?;
+        const e: *const sapp.Event = ev.?;
 
-        switch (e.type) {
-            .MOUSE_MOVE => {
-                // I only care about the dx and dy of the mouse, nothing else
-                // This is going to be used in the physics calculations
-
-                app.marble_pos[0] += e.mouse_dx;
-                app.marble_pos[1] += e.mouse_dy;
-            },
-
-            .MOUSE_DOWN => {
-                if (e.mouse_button == .LEFT) {
-                    sapp.lockMouse(true);
-                }
-            },
-
-            .KEY_DOWN => {
-                switch (e.key_code) {
-                    .ESCAPE => {
-                        sapp.lockMouse(false);
-                        sapp.requestQuit();
-                    },
-                    .W => app.marble_pos[1] -= 1.0,
-                    .A => app.marble_pos[0] -= 1.0,
-                    .S => app.marble_pos[1] += 1.0,
-                    .D => app.marble_pos[0] += 1.0,
-                    else => {},
-                }
-            },
-
-            .UNFOCUSED => {
-                sapp.lockMouse(false);
-            },
-
-            else => {},
-        }
+        app.input.eventHanlder(e);
     }
 };
 
