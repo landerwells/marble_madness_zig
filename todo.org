@@ -7,7 +7,7 @@
 - [X] Have a marble render
 - [X] Get marble movement working distinct from the background
 - [X] Get things pixel aligned
-- [ ] Create input state and transfer event logic there
+- [X] Create input state and transfer event logic there
 - [ ] Fix my timestep
 - [ ] Get sprite sheet animation working
 - [ ] Load files in from Tiled

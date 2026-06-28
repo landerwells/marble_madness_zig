@@ -2,7 +2,7 @@ const std = @import("std");
 const sokol = @import("sokol");
 const sapp = sokol.app;
 
-// This is a cool idiom idiom that I didn't realize was possible
+// This is a cool idiom that I didn't realize was possible
 const Input = @This();
 
 mouse_delta: [2]f32 = .{ 0.0, 0.0 },
