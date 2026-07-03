@@ -3,3 +3,31 @@
 
 // Basically for every sprite we are going to need to define which
 // actions are being performed. Probably via an enum?
+
+const SpriteSheet = @This();
+
+texture_width: u32,
+texture_height: u32,
+sprite_width: u32,
+sprite_height: u32,
+
+pub fn uvScale(self: SpriteSheet) [2]f32 {
+    return .{
+        1.0 / (@as(f32, @floatFromInt(self.texture_width)) / @as(f32, @floatFromInt(self.sprite_width))),
+        1.0 / (@as(f32, @floatFromInt(self.texture_height)) / @as(f32, @floatFromInt(self.sprite_height))),
+    };
+}
+
+pub fn uvOffset(self: SpriteSheet, index: u32) [2]f32 {
+    const cols = self.texture_width / self.texture_width;
+
+    const col = index % cols;
+    const row = index / cols;
+
+    const scale = self.uvScale();
+
+    return .{
+        @as(f32, @floatFromInt(col)) * scale[0],
+        @as(f32, @floatFromInt(row)) * scale[1],
+    };
+}

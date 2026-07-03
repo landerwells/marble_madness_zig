@@ -8,7 +8,7 @@ const Input = @This();
 mouse_delta: [2]f32 = .{ 0.0, 0.0 },
 
 pub fn eventHanlder(self: *Input, e: *const sapp.Event) void {
-    std.debug.print("{any}\n", .{self.mouse_delta});
+    // std.debug.print("{any}\n", .{self.mouse_delta});
     switch (e.type) {
         .MOUSE_MOVE => {
             // I only care about the dx and dy of the mouse, nothing else

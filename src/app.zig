@@ -11,6 +11,8 @@ const sfetch = sokol.fetch;
 const slog = sokol.log;
 const shd = @import("shader");
 const Input = @import("input.zig");
+const SpriteSheet = @import("sprite_sheet.zig");
+const Marble = @import("marble.zig");
 
 const std = @import("std");
 
@@ -23,50 +25,6 @@ const Vertex = struct {
 const INTERNAL_WIDTH = 320;
 const INTERNAL_HEIGHT = 240;
 const SPRITE_SIZE = 32;
-
-const SpriteSheet = struct {
-    texture_width: f32,
-    texture_height: f32,
-    sprite_width: f32,
-    sprite_height: f32,
-
-    fn uvRect(self: SpriteSheet, col: u32, row: u32) [4][2]f32 {
-        const x0 = (@as(f32, @floatFromInt(col)) * self.sprite_width) / self.texture_width;
-        const y0 = (@as(f32, @floatFromInt(row)) * self.sprite_height) / self.texture_height;
-        const x1 = (@as(f32, @floatFromInt(col + 1)) * self.sprite_width) / self.texture_width;
-        const y1 = (@as(f32, @floatFromInt(row + 1)) * self.sprite_height) / self.texture_height;
-
-        return .{
-            .{ x0, y0 }, // top-left
-            .{ x1, y0 }, // top-right
-            .{ x1, y1 }, // bottom-right
-            .{ x0, y1 }, // bottom-left
-        };
-    }
-};
-
-const MOVE_ACCEL = 100.0;
-const MAX_SPEED = 150.0;
-const FRICTION = 0.5;
-
-// The marble should probably own its own spritesheet/ animation
-const Marble = struct {
-    // I think technically we will need to know what Z level we are at as well,
-    // since the marble should fall when not actually on the ground.
-    position: [2]f32 = .{ 160.0, 120.0 },
-    velocity: [2]f32 = .{ 0.0, 0.0 },
-
-    fn update(self: *Marble, input: *Input, dt: f32) void {
-        self.velocity[0] += input.mouse_delta[0] * dt;
-        self.velocity[1] += input.mouse_delta[1] * dt;
-
-        self.velocity[0] *= 1.0 - FRICTION * dt;
-        self.velocity[1] *= 1.0 - FRICTION * dt;
-
-        self.position[0] += self.velocity[0] * dt;
-        self.position[1] += self.velocity[1] * dt;
-    }
-};
 
 io: std.Io,
 bind: sg.Bindings = .{},
@@ -102,14 +60,14 @@ pub fn init(user_data: ?*anyopaque) callconv(.c) void {
         return;
     };
 
-    const background_sheet = SpriteSheet{
-        .texture_width = 192,
-        .texture_height = 288,
-        .sprite_width = 32,
-        .sprite_height = 32,
-    };
+    // const background_sheet = SpriteSheet{
+    //     .texture_width = 192,
+    //     .texture_height = 288,
+    //     .sprite_width = 32,
+    //     .sprite_height = 32,
+    // };
 
-    const marble_img = asset.loadImage(
+    marble.img = asset.loadImage(
         app.io,
         alloc,
         "assets/misc.png",
@@ -119,56 +77,46 @@ pub fn init(user_data: ?*anyopaque) callconv(.c) void {
         return;
     };
 
-    const marble_sheet = SpriteSheet{
-        .texture_width = 352,
-        .texture_height = 864,
-        .sprite_width = 32,
-        .sprite_height = 32,
-    };
-
-    const background_uvs = background_sheet.uvRect(0, 0);
-    const marble_uvs = marble_sheet.uvRect(0, 2);
-
     const vertices = [_]Vertex{
         .{
             .position = .{ 0, 0, 0.5 },
             .color = .{ 1.0, 0.0, 0.0, 1.0 },
-            .uv = background_uvs[0],
+            .uv = .{ 0.0, 0.0 },
         },
         .{
             .position = .{ SPRITE_SIZE, 0, 0.5 },
             .color = .{ 0.0, 1.0, 0.0, 1.0 },
-            .uv = background_uvs[1],
+            .uv = .{ 1.0, 0.0 },
         },
         .{
             .position = .{ SPRITE_SIZE, SPRITE_SIZE, 0.5 },
             .color = .{ 0.0, 0.0, 1.0, 1.0 },
-            .uv = background_uvs[2],
+            .uv = .{ 1.0, 1.0 },
         },
         .{
             .position = .{ 0, SPRITE_SIZE, 0.5 },
             .color = .{ 1.0, 1.0, 0.0, 1.0 },
-            .uv = background_uvs[3],
+            .uv = .{ 0.0, 1.0 },
         },
         .{
             .position = .{ 0, 0, 0.5 },
             .color = .{ 1.0, 0.0, 0.0, 1.0 },
-            .uv = marble_uvs[0],
+            .uv = .{ 0.0, 0.0 },
         },
         .{
             .position = .{ SPRITE_SIZE, 0, 0.5 },
             .color = .{ 0.0, 1.0, 0.0, 1.0 },
-            .uv = marble_uvs[1],
+            .uv = .{ 1.0, 0.0 },
         },
         .{
             .position = .{ SPRITE_SIZE, SPRITE_SIZE, 0.5 },
             .color = .{ 0.0, SPRITE_SIZE, 1.0, 1.0 },
-            .uv = marble_uvs[2],
+            .uv = .{ 1.0, 1.0 },
         },
         .{
             .position = .{ 0, SPRITE_SIZE, 0.5 },
             .color = .{ 1.0, 1.0, 0.0, 1.0 },
-            .uv = marble_uvs[3],
+            .uv = .{ 0.0, 1.0 },
         },
     };
 
@@ -233,6 +181,9 @@ pub fn deinit(_: ?*anyopaque) callconv(.c) void {
 var time: f32 = 0.0;
 var delta_time: f32 = 1.0 / 60.0;
 
+var marble_frame: [2]f32 = .{ 0.0, 0.0 };
+var marble_index: f32 = 0.0;
+
 pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     const app: *App = @ptrCast(@alignCast(user_data));
 
@@ -247,6 +198,8 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     app.marble.update(&app.input, delta_time);
     const background_params = shd.VsParams{
         .offset = .{ 0.0, 0.0 },
+        .uv_offset = .{ 0.0, 0.0 },
+        .uv_scale = .{ 1.0, 1.0 },
     };
 
     app.bind.views[shd.VIEW_tex] = app.background_view;
@@ -254,7 +207,20 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     sg.applyUniforms(shd.UB_vs_params, sg.asRange(&background_params));
     sg.draw(0, 6, 1);
 
-    const marble_params = shd.VsParams{ .offset = app.marble.position };
+    // Alright, we technically got sprite animation "working"
+    const marble_params = shd.VsParams{
+        .offset = app.marble.position,
+        // How to get this UV offset to a meaningful value?
+        // Need a function to calculate and return a [2]f32 based on the current
+        // animation frame
+        // Need to convert here from rows/cols to uv offset
+        // So need a function that allows
+        .uv_offset = app.marble.sheet.uvOffset(@intFromFloat(marble_index)),
+        .uv_scale = app.marble.sheet.uvScale(),
+    };
+
+    marble_index += 0.01;
+    // marble_index = marble_index % 10;
 
     app.bind.views[shd.VIEW_tex] = app.marble_view;
     sg.applyBindings(app.bind);

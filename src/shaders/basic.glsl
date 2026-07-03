@@ -1,6 +1,9 @@
 @vs vs
 layout(binding=0) uniform vs_params {
   vec2 offset;
+  vec2 uv_offset;
+  // uv_scale is the
+  vec2 uv_scale;
 };
 
 in vec4 position;
@@ -20,7 +23,8 @@ void main() {
   );
 
   gl_Position = vec4(ndc, position.z, 1.0);
-  uv = texture0;
+  // So right here we can calculate the uv
+  uv = texture0 * uv_scale + uv_offset;
 }
 @end
 
