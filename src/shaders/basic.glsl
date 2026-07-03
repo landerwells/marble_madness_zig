@@ -23,8 +23,8 @@ void main() {
   );
 
   gl_Position = vec4(ndc, position.z, 1.0);
-  // So right here we can calculate the uv
-  uv = texture0 * uv_scale + uv_offset;
+  // I guess what makes the most sense when trying to calculate this??
+  uv = (texture0 * uv_scale) + (uv_offset * uv_scale);
 }
 @end
 

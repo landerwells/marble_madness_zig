@@ -76,6 +76,7 @@ pub fn init(user_data: ?*anyopaque) callconv(.c) void {
         return;
     };
 
+    // Vertex buffer needs to be created programatically from the map
     const vertices = [_]Vertex{
         .{
             .position = .{ 0, 0, 0.5 },
@@ -206,20 +207,11 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     sg.applyUniforms(shd.UB_vs_params, sg.asRange(&background_params));
     sg.draw(0, 6, 1);
 
-    // Alright, we technically got sprite animation "working"
     const marble_params = shd.VsParams{
         .offset = app.marble.position,
-        // How to get this UV offset to a meaningful value?
-        // Need a function to calculate and return a [2]f32 based on the current
-        // animation frame
-        // Need to convert here from rows/cols to uv offset
-        // So need a function that allows
-        .uv_offset = app.marble.sheet.uvOffset(@intFromFloat(marble_index)),
+        .uv_offset = .{ 1, 4 },
         .uv_scale = app.marble.sheet.uvScale(),
     };
-
-    marble_index += 0.01;
-    // marble_index = marble_index % 10;
 
     app.bind.views[shd.VIEW_tex] = app.marble.view;
     sg.applyBindings(app.bind);
