@@ -33,7 +33,6 @@ pip: sg.Pipeline = .{},
 input: Input = .{},
 
 background_view: sg.View = .{},
-marble_view: sg.View = .{},
 
 marble: Marble = .{},
 
@@ -67,7 +66,7 @@ pub fn init(user_data: ?*anyopaque) callconv(.c) void {
     //     .sprite_height = 32,
     // };
 
-    marble.img = asset.loadImage(
+    app.marble.img = asset.loadImage(
         app.io,
         alloc,
         "assets/misc.png",
@@ -138,8 +137,8 @@ pub fn init(user_data: ?*anyopaque) callconv(.c) void {
         .texture = .{ .image = background_img },
     });
 
-    app.marble_view = sg.makeView(.{
-        .texture = .{ .image = marble_img },
+    app.marble.view = sg.makeView(.{
+        .texture = .{ .image = app.marble.img },
     });
 
     // ...and a sampler object with default attributes
@@ -222,7 +221,7 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     marble_index += 0.01;
     // marble_index = marble_index % 10;
 
-    app.bind.views[shd.VIEW_tex] = app.marble_view;
+    app.bind.views[shd.VIEW_tex] = app.marble.view;
     sg.applyBindings(app.bind);
     sg.applyUniforms(shd.UB_vs_params, sg.asRange(&marble_params));
     sg.draw(6, 6, 1);

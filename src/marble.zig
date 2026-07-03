@@ -9,11 +9,11 @@ const MOVE_ACCEL = 100.0;
 const MAX_SPEED = 150.0;
 const FRICTION = 0.5;
 
-// The marble should know its place in the isometric world, have
-// all of its data, and be able to
 position: [2]f32 = .{ 160.0, 120.0 },
 velocity: [2]f32 = .{ 0.0, 0.0 },
+
 img: sg.Image = .{},
+view: sg.View = .{},
 
 sheet: SpriteSheet = SpriteSheet{
     .texture_width = 352,
@@ -32,13 +32,3 @@ pub fn update(self: *Marble, input: *Input, dt: f32) void {
     self.position[0] += self.velocity[0] * dt;
     self.position[1] += self.velocity[1] * dt;
 }
-
-// const mahrble_img = asset.loadImage(
-//     app.io,
-//     alloc,
-//     "assets/misc.png",
-// ) catch |err| {
-//     std.log.err("failed to load image: {}", .{err});
-//     sapp.requestQuit();
-//     return;
-// };
