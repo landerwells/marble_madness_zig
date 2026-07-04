@@ -1,4 +1,4 @@
-* TODO Evergrowing todo list
+* TODO Evergrowing todo list [/]
 :LOGBOOK:
 CLOCK: [2026-07-03 Fri 09:24]
 :END:
@@ -16,6 +16,8 @@ CLOCK: [2026-07-03 Fri 09:24]
 - [ ] Get sprite sheet animation working
 - [ ] Load files in from Tiled
 - [ ] Work on first level
+- [ ] Rename project to rollout_zig
+- [ ] Clean up repo and make public
 
 
 Alright, goal for right now is to get the sprite sheet animation working??

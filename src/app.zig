@@ -1,8 +1,9 @@
-const App = @This();
-
+const Input = @import("input.zig");
+const Marble = @import("marble.zig");
+const Map = @import("map.zig");
 const asset = @import("asset.zig");
-const sokol = @import("sokol");
 
+const sokol = @import("sokol");
 const zmath = @import("zmath");
 const sapp = sokol.app;
 const sg = sokol.gfx;
@@ -10,10 +11,12 @@ const sglue = sokol.glue;
 const sfetch = sokol.fetch;
 const slog = sokol.log;
 const shd = @import("shader");
-const Input = @import("input.zig");
-const SpriteSheet = @import("sprite_sheet.zig");
-const Marble = @import("marble.zig");
 
+const App = @This();
+
+// I think at some point we will have the concept of a level. Each level
+// will be responsible for the state that it handles. Like marble
+// background, stuff like that.
 const std = @import("std");
 
 const Vertex = struct {
@@ -35,8 +38,10 @@ input: Input = .{},
 background_view: sg.View = .{},
 
 marble: Marble = .{},
+map: Map = .{},
 
 pub fn init(user_data: ?*anyopaque) callconv(.c) void {
+    const view = zmath.mat;
     const app: *App = @ptrCast(@alignCast(user_data));
 
     sg.setup(.{
@@ -49,23 +54,17 @@ pub fn init(user_data: ?*anyopaque) callconv(.c) void {
 
     const alloc = arena.allocator();
 
-    const background_img = asset.loadImage(
+    app.map.img = asset.loadImage(
         app.io,
         alloc,
-        "assets/isometric-sandbox-32x32/isometric-sandbox-sheet.png",
+        "assets/tileset.png",
     ) catch |err| {
         std.log.err("failed to load image: {}", .{err});
         sapp.requestQuit();
         return;
     };
 
-    // const background_sheet = SpriteSheet{
-    //     .texture_width = 192,
-    //     .texture_height = 288,
-    //     .sprite_width = 32,
-    //     .sprite_height = 32,
-    // };
-
+    // I don't think the tile has to actuall
     app.marble.img = asset.loadImage(
         app.io,
         alloc,
@@ -135,7 +134,7 @@ pub fn init(user_data: ?*anyopaque) callconv(.c) void {
     });
 
     app.background_view = sg.makeView(.{
-        .texture = .{ .image = background_img },
+        .texture = .{ .image = app.map.img },
     });
 
     app.marble.view = sg.makeView(.{
