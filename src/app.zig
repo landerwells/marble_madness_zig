@@ -92,8 +92,11 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     sg.beginPass(.{ .swapchain = sglue.swapchain() });
     sg.applyPipeline(app.renderer.pip);
 
+    // So now I can render multiple sprites at a given time, I need to pass in a map
+    // or something to render all of the blocks correctly
     app.renderer.draw(app.background_view, .{ 0.0, 0.0 }, .{ 0.0, 0.0 });
-    app.renderer.draw(app.marble_view, .{ 0.0, 0.0 }, .{ 0.0, 0.0 });
+    app.renderer.draw(app.background_view, .{ 0.0, 0.0 }, .{ 0.0, 1.0 });
+    app.renderer.draw(app.marble_view, .{ 0.0, 0.0 }, app.marble.position);
 
     sg.endPass();
     sg.commit();

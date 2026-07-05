@@ -76,6 +76,7 @@ pub fn init(self: *Renderer) void {
     });
 }
 
+// Does this draw call need to suport uvs?
 pub fn draw(self: *Renderer, view: sg.View, _: [2]f32, position: [2]f32) void {
     // var model: zmath.Mat = zmath.identity();
     // model = zmath.translation(tmodel, y: f32, z: f32)

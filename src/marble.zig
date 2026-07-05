@@ -9,7 +9,7 @@ const MOVE_ACCEL = 100.0;
 const MAX_SPEED = 150.0;
 const FRICTION = 0.5;
 
-position: [2]f32 = .{ 160.0, 120.0 },
+position: [2]f32 = .{ 0.0, 0.0 },
 velocity: [2]f32 = .{ 0.0, 0.0 },
 
 img: sg.Image = .{},

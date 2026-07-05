@@ -15,7 +15,9 @@ pub fn eventHanlder(self: *Input, e: *const sapp.Event) void {
             // This is going to be used in the physics calculations
 
             self.mouse_delta[0] += e.mouse_dx;
-            self.mouse_delta[1] += e.mouse_dy;
+            // Not sure if this should be negative, but it works since the
+            // flip happened.
+            self.mouse_delta[1] -= e.mouse_dy;
         },
 
         .MOUSE_DOWN => {

@@ -1,5 +1,4 @@
-<<<<<<< Updated upstream
-* TODO Evergrowing todo list [11/18]
+* TODO Evergrowing todo list [12/21]
 - [X] Initial commit
 - [X] Add sokol-zig
 - [X] Get a window
@@ -11,6 +10,8 @@
 - [X] Create input state and transfer event logic there
 - [X] Get a renderer set up
 - [X] Set up projection matrix
+- [X] Unflip the textures
+- [ ] Texture atlases back please
 - [ ] Swap to using stbi for image loading
 - [ ] Get starter level working with some basic geometry
 - [ ] Fix my timestep
