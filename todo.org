@@ -1,7 +1,5 @@
+<<<<<<< Updated upstream
 * TODO Evergrowing todo list [/]
-:LOGBOOK:
-CLOCK: [2026-07-03 Fri 09:24]
-:END:
 - [X] Initial commit
 - [X] Add sokol-zig
 - [X] Get a window

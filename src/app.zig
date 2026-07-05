@@ -1,26 +1,25 @@
-const Input = @import("input.zig");
-const Marble = @import("marble.zig");
-const Map = @import("map.zig");
-const asset = @import("asset.zig");
+const std = @import("std");
 
 const sokol = @import("sokol");
 const zmath = @import("zmath");
+const shd = @import("shader");
+
 const sapp = sokol.app;
 const sg = sokol.gfx;
 const sglue = sokol.glue;
 const sfetch = sokol.fetch;
 const slog = sokol.log;
-const shd = @import("shader");
+
+const asset = @import("asset.zig");
+
+const Input = @import("input.zig");
+const Marble = @import("marble.zig");
+const Map = @import("map.zig");
 
 const App = @This();
 
-// I think at some point we will have the concept of a level. Each level
-// will be responsible for the state that it handles. Like marble
-// background, stuff like that.
-const std = @import("std");
-
 const Vertex = struct {
-    position: [3]f32,
+    position: [2]f32,
     color: [4]f32,
     uv: [2]f32,
 };
@@ -41,7 +40,8 @@ marble: Marble = .{},
 map: Map = .{},
 
 pub fn init(user_data: ?*anyopaque) callconv(.c) void {
-    const view = zmath.mat;
+    const view: zmath.Mat = zmath.identity();
+    std.debug.print("{any}", .{view});
     const app: *App = @ptrCast(@alignCast(user_data));
 
     sg.setup(.{
@@ -75,45 +75,48 @@ pub fn init(user_data: ?*anyopaque) callconv(.c) void {
         return;
     };
 
+    // I guess this is going to just be a
+    // const vertices1: [_][_]f32 = {};
+
     // Vertex buffer needs to be created programatically from the map
     const vertices = [_]Vertex{
         .{
-            .position = .{ 0, 0, 0.5 },
+            .position = .{ 0, 0 },
             .color = .{ 1.0, 0.0, 0.0, 1.0 },
             .uv = .{ 0.0, 0.0 },
         },
         .{
-            .position = .{ SPRITE_SIZE, 0, 0.5 },
+            .position = .{ SPRITE_SIZE, 0 },
             .color = .{ 0.0, 1.0, 0.0, 1.0 },
             .uv = .{ 1.0, 0.0 },
         },
         .{
-            .position = .{ SPRITE_SIZE, SPRITE_SIZE, 0.5 },
+            .position = .{ SPRITE_SIZE, SPRITE_SIZE },
             .color = .{ 0.0, 0.0, 1.0, 1.0 },
             .uv = .{ 1.0, 1.0 },
         },
         .{
-            .position = .{ 0, SPRITE_SIZE, 0.5 },
+            .position = .{ 0, SPRITE_SIZE },
             .color = .{ 1.0, 1.0, 0.0, 1.0 },
             .uv = .{ 0.0, 1.0 },
         },
         .{
-            .position = .{ 0, 0, 0.5 },
+            .position = .{ 0, 0 },
             .color = .{ 1.0, 0.0, 0.0, 1.0 },
             .uv = .{ 0.0, 0.0 },
         },
         .{
-            .position = .{ SPRITE_SIZE, 0, 0.5 },
+            .position = .{ SPRITE_SIZE, 0 },
             .color = .{ 0.0, 1.0, 0.0, 1.0 },
             .uv = .{ 1.0, 0.0 },
         },
         .{
-            .position = .{ SPRITE_SIZE, SPRITE_SIZE, 0.5 },
+            .position = .{ SPRITE_SIZE, SPRITE_SIZE },
             .color = .{ 0.0, SPRITE_SIZE, 1.0, 1.0 },
             .uv = .{ 1.0, 1.0 },
         },
         .{
-            .position = .{ 0, SPRITE_SIZE, 0.5 },
+            .position = .{ 0, SPRITE_SIZE },
             .color = .{ 1.0, 1.0, 0.0, 1.0 },
             .uv = .{ 0.0, 1.0 },
         },
@@ -154,7 +157,7 @@ pub fn init(user_data: ?*anyopaque) callconv(.c) void {
         .shader = sg.makeShader(shd.basicShaderDesc(sg.queryBackend())),
         .layout = init: {
             var l = sg.VertexLayoutState{};
-            l.attrs[shd.ATTR_basic_position].format = .FLOAT3;
+            l.attrs[shd.ATTR_basic_position].format = .FLOAT2;
             l.attrs[shd.ATTR_basic_color0].format = .FLOAT4;
             l.attrs[shd.ATTR_basic_texture0].format = .FLOAT2;
             break :init l;
@@ -188,14 +191,17 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
 
     // integrate is for physics?
     // integrate(time, delta_time);
-    // render();
 
     // I think all of this code can be moved to a render call?
+
+    // I believe each frame we will want to be passing a mvp to the shader
     sg.beginPass(.{ .swapchain = sglue.swapchain() });
     sg.applyPipeline(app.pip);
 
     app.marble.update(&app.input, delta_time);
     const background_params = shd.VsParams{
+        // .model = ...,
+        .projection = zmath.matToArr(zmath.orthographicLhGl(800, 600, -1.0, 1.0)),
         .offset = .{ 0.0, 0.0 },
         .uv_offset = .{ 0.0, 0.0 },
         .uv_scale = .{ 1.0, 1.0 },
@@ -207,6 +213,8 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     sg.draw(0, 6, 1);
 
     const marble_params = shd.VsParams{
+        // .model = ...,
+        .projection = zmath.matToArr(zmath.orthographicLhGl(800, 600, -1.0, 1.0)),
         .offset = app.marble.position,
         .uv_offset = .{ 1, 4 },
         .uv_scale = app.marble.sheet.uvScale(),
@@ -230,3 +238,10 @@ pub fn event(ev: ?*const sapp.Event, user_data: ?*anyopaque) callconv(.c) void {
 
     app.input.eventHanlder(e);
 }
+
+// A renderer is an abstraction in graphics programming which is responsible for managing the scene
+// The renderer could be responsible for loading assets
+const Renderer = struct {
+    fn init() void {}
+    fn draw() void {}
+};

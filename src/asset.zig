@@ -5,6 +5,7 @@ const sg = sokol.gfx;
 
 const zigimg = @import("zigimg");
 
+// I could change this to use stb_image if I wanted.
 pub fn loadImage(io: std.Io, allocator: std.mem.Allocator, path: []const u8) !sg.Image {
     // need a read buffer.
     var read_buffer: [zigimg.io.DEFAULT_BUFFER_SIZE]u8 = undefined;
@@ -26,3 +27,5 @@ pub fn loadImage(io: std.Io, allocator: std.mem.Allocator, path: []const u8) !sg
 }
 
 pub fn loadMap() void {}
+
+pub fn loadFont() void {}
