@@ -1,5 +1,5 @@
 <<<<<<< Updated upstream
-* TODO Evergrowing todo list [/]
+* TODO Evergrowing todo list [11/18]
 - [X] Initial commit
 - [X] Add sokol-zig
 - [X] Get a window
@@ -9,6 +9,9 @@
 - [X] Get marble movement working distinct from the background
 - [X] Get things pixel aligned
 - [X] Create input state and transfer event logic there
+- [X] Get a renderer set up
+- [X] Set up projection matrix
+- [ ] Swap to using stbi for image loading
 - [ ] Get starter level working with some basic geometry
 - [ ] Fix my timestep
 - [ ] Get sprite sheet animation working
