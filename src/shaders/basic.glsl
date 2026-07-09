@@ -2,9 +2,8 @@
 layout(binding=0) uniform vs_params {
     mat4 model;
     mat4 projection;
-    // vec2 offset;
-    // vec2 uv_offset;
-    // vec2 uv_scale;
+    vec2 uv_offset;
+    vec2 uv_scale;
 };
 
 in vec2 position;
@@ -14,17 +13,9 @@ in vec2 texture0;
 out vec2 uv;
 
 void main() {
-    // vec2 pixel_pos = position.xy + offset;
-
-    // vec2 ndc = vec2(
-    //     pixel_pos.x / 320.0 * 2.0 - 1.0,
-    //     1.0 - pixel_pos.y / 240.0 * 2.0
-    // );
-
-    uv = texture0;
     gl_Position = projection * model * vec4(position, 0.0, 1.0);
-    // vec4(ndc, 0, 1.0);
-    // uv = (texture0 * uv_scale) + (uv_offset * uv_scale);
+    uv = texture0 * uv_scale + uv_offset;
+    uv = (texture0 * uv_scale) + (uv_offset * uv_scale);
 }
 @end
 

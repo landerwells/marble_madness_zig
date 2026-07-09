@@ -1,6 +1,8 @@
 const sokol = @import("sokol");
 const shd = @import("shader");
 
+const SpriteSheet = @import("sprite_sheet.zig");
+
 const sg = sokol.gfx;
 const zmath = @import("zmath");
 
@@ -13,23 +15,22 @@ const Vertex = struct {
 };
 
 const Renderer = @This();
-
 const vertices = [_]Vertex{
     .{
         .position = .{ 0.0, 0.0 },
-        .uv = .{ 0.0, 0.0 },
+        .uv = .{ 0.0, 1.0 },
     },
     .{
         .position = .{ 1.0, 0.0 },
-        .uv = .{ 1.0, 0.0 },
-    },
-    .{
-        .position = .{ 1.0, 1.0 },
         .uv = .{ 1.0, 1.0 },
     },
     .{
+        .position = .{ 1.0, 1.0 },
+        .uv = .{ 1.0, 0.0 },
+    },
+    .{
         .position = .{ 0, 1.0 },
-        .uv = .{ 0.0, 1.0 },
+        .uv = .{ 0.0, 0.0 },
     },
 };
 
@@ -76,17 +77,16 @@ pub fn init(self: *Renderer) void {
     });
 }
 
-// Does this draw call need to suport uvs?
-pub fn draw(self: *Renderer, view: sg.View, _: [2]f32, position: [2]f32) void {
-    // var model: zmath.Mat = zmath.identity();
-    // model = zmath.translation(tmodel, y: f32, z: f32)
-    const model = zmath.translationV(position ++ .{ 0.0, 0.0 });
-    // model = zmath.translation(model, 0.5 * size[0], 0.5 * size[1]);
-    // model = zmath.translation(model, -0.5 * size[0], 0.5 * size[1]);
+// Not sure we will ever need rotation on this one.
+pub fn drawFromSpriteSheet(self: *Renderer, view: sg.View, sheet: SpriteSheet, size: [2]f32, position: [2]f32, offset: [2]f32) void {
+    var model = zmath.translationV(position ++ .{ 0.0, 0.0 });
+    model = zmath.mul(model, zmath.scaling(size[0], size[1], 1.0));
 
     const uniforms = shd.VsParams{
         .model = zmath.matToArr(model),
         .projection = zmath.matToArr(zmath.orthographicLhGl(8, 6, -1.0, 1.0)),
+        .uv_offset = offset,
+        .uv_scale = sheet.uvScale(),
     };
 
     self.bind.views[shd.VIEW_tex] = view;

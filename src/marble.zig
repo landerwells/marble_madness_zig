@@ -15,6 +15,8 @@ velocity: [2]f32 = .{ 0.0, 0.0 },
 img: sg.Image = .{},
 view: sg.View = .{},
 
+size: [2]f32 = .{ 1.0, 1.0 },
+
 sheet: SpriteSheet = SpriteSheet{
     .texture_width = 352,
     .texture_height = 864,

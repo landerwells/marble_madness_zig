@@ -12,3 +12,5 @@ const Map = @This();
 // filled automatically with the information it needs.
 
 img: sg.Image = .{},
+
+// The map should have a list of tiles,

@@ -15,6 +15,7 @@ const Input = @import("input.zig");
 const Map = @import("map.zig");
 const Marble = @import("marble.zig");
 const Renderer = @import("renderer.zig");
+const Tile = @import("tile.zig");
 
 const App = @This();
 
@@ -27,11 +28,13 @@ renderer: Renderer = .{},
 
 input: Input = .{},
 
-background_view: sg.View = .{},
-marble_view: sg.View = .{},
-
 marble: Marble = .{},
 map: Map = .{},
+
+tile_view: sg.View = .{},
+tile: Tile = .{
+    .direction = Tile.Direction.ne,
+},
 
 pub fn init(user_data: ?*anyopaque) callconv(.c) void {
     const app: *App = @ptrCast(@alignCast(user_data));
@@ -66,11 +69,11 @@ pub fn init(user_data: ?*anyopaque) callconv(.c) void {
         return;
     };
 
-    app.background_view = sg.makeView(.{
+    app.tile_view = sg.makeView(.{
         .texture = .{ .image = background_img },
     });
 
-    app.marble_view = sg.makeView(.{
+    app.marble.view = sg.makeView(.{
         .texture = .{ .image = marble_img },
     });
 
@@ -92,11 +95,8 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     sg.beginPass(.{ .swapchain = sglue.swapchain() });
     sg.applyPipeline(app.renderer.pip);
 
-    // So now I can render multiple sprites at a given time, I need to pass in a map
-    // or something to render all of the blocks correctly
-    app.renderer.draw(app.background_view, .{ 0.0, 0.0 }, .{ 0.0, 0.0 });
-    app.renderer.draw(app.background_view, .{ 0.0, 0.0 }, .{ 0.0, 1.0 });
-    app.renderer.draw(app.marble_view, .{ 0.0, 0.0 }, app.marble.position);
+    app.renderer.drawFromSpriteSheet(app.tile_view, app.tile.sheet, app.tile.size, .{ 0.0, 0.0 }, .{ 0.0, 0.0 });
+    app.renderer.drawFromSpriteSheet(app.marble.view, app.marble.sheet, app.marble.size, app.marble.position, .{ 1.0, 4.0 });
 
     sg.endPass();
     sg.commit();
