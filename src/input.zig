@@ -2,21 +2,19 @@ const std = @import("std");
 const sokol = @import("sokol");
 const sapp = sokol.app;
 
-// This is a cool idiom that I didn't realize was possible
 const Input = @This();
 
 mouse_delta: [2]f32 = .{ 0.0, 0.0 },
 
+left: bool = false,
+right: bool = false,
+up: bool = false,
+down: bool = false,
+
 pub fn eventHanlder(self: *Input, e: *const sapp.Event) void {
-    // std.debug.print("{any}\n", .{self.mouse_delta});
     switch (e.type) {
         .MOUSE_MOVE => {
-            // I only care about the dx and dy of the mouse, nothing else
-            // This is going to be used in the physics calculations
-
             self.mouse_delta[0] += e.mouse_dx;
-            // Not sure if this should be negative, but it works since the
-            // flip happened.
             self.mouse_delta[1] -= e.mouse_dy;
         },
 
@@ -32,6 +30,10 @@ pub fn eventHanlder(self: *Input, e: *const sapp.Event) void {
                     sapp.lockMouse(false);
                     sapp.requestQuit();
                 },
+                .LEFT => self.left = true,
+                .RIGHT => self.right = true,
+                .UP => self.up = true,
+                .DOWN => self.down = true,
                 else => {},
             }
         },
@@ -46,4 +48,8 @@ pub fn eventHanlder(self: *Input, e: *const sapp.Event) void {
 
 pub fn frameEnd(self: *Input) void {
     self.mouse_delta = .{ 0.0, 0.0 };
+    self.left = false;
+    self.right = false;
+    self.up = false;
+    self.down = false;
 }

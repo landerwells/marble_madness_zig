@@ -2,6 +2,8 @@ const sokol = @import("sokol");
 const shd = @import("shader");
 
 const SpriteSheet = @import("sprite_sheet.zig");
+const TileMap = @import("tile_map.zig");
+const Camera = @import("camera.zig");
 
 const sg = sokol.gfx;
 const zmath = @import("zmath");
@@ -77,14 +79,17 @@ pub fn init(self: *Renderer) void {
     });
 }
 
-// Not sure we will ever need rotation on this one.
-pub fn drawFromSpriteSheet(self: *Renderer, view: sg.View, sheet: SpriteSheet, size: [2]f32, position: [2]f32, offset: [2]f32) void {
+// I think we need a cleaner draw abstraction
+pub fn drawFromSpriteSheet(self: *Renderer, camera: *Camera, view: sg.View, sheet: SpriteSheet, size: [2]f32, position: [2]f32, offset: [2]f32) void {
     var model = zmath.translationV(position ++ .{ 0.0, 0.0 });
     model = zmath.mul(model, zmath.scaling(size[0], size[1], 1.0));
+    const view_matrix = camera.view();
 
+    // Need to have a view projection here, which is going to be
     const uniforms = shd.VsParams{
         .model = zmath.matToArr(model),
-        .projection = zmath.matToArr(zmath.orthographicLhGl(8, 6, -1.0, 1.0)),
+        .view = zmath.matToArr(view_matrix),
+        .projection = zmath.matToArr(zmath.orthographicLhGl(camera.screen_x, camera.screen_y, -1.0, 1.0)),
         .uv_offset = offset,
         .uv_scale = sheet.uvScale(),
     };
@@ -93,4 +98,32 @@ pub fn drawFromSpriteSheet(self: *Renderer, view: sg.View, sheet: SpriteSheet, s
     sg.applyBindings(self.bind);
     sg.applyUniforms(shd.UB_vs_params, sg.asRange(&uniforms));
     sg.draw(0, 6, 1);
+}
+
+pub fn drawFromTileMap(self: *Renderer, camera: *Camera, tile_map: *TileMap) void {
+    var y = tile_map.tiles.len;
+    while (y > 0) {
+        y -= 1;
+
+        var x = tile_map.tiles[y].len;
+        while (x > 0) {
+            x -= 1;
+
+            var position: [2]f32 = .{ @floatFromInt(x), @floatFromInt(y) };
+            // if we are on an odd row, apply an offset to position
+            if (@mod(y, 2) != 0) {
+                position = .{ position[0] + 0.5, position[1] - 0.75 };
+            }
+            self.drawFromSpriteSheet(
+                camera,
+                tile_map.view,
+                tile_map.tiles[y][x].sheet,
+                .{ 0.5, 0.5 },
+                tile_map.tileToWorld(x, y),
+                .{ 0.0, 0.0 },
+            );
+        }
+    }
+    // Nested for loops on the draw calls, could just call
+    // draw from sprite sheet
 }

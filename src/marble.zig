@@ -5,9 +5,9 @@ const asset = @import("asset.zig");
 const sokol = @import("sokol");
 const sg = sokol.gfx;
 
-const MOVE_ACCEL = 100.0;
-const MAX_SPEED = 150.0;
-const FRICTION = 0.5;
+const MOVE_ACCEL = 1.0;
+const MAX_SPEED = 1.0;
+const FRICTION = 2.0;
 
 position: [2]f32 = .{ 0.0, 0.0 },
 velocity: [2]f32 = .{ 0.0, 0.0 },
@@ -24,6 +24,8 @@ sheet: SpriteSheet = SpriteSheet{
     .sprite_height = 32,
 },
 
+// TODO: Need to update this function to actually account for things
+// other than just friction and the mouse_delta.
 pub fn update(self: *Marble, input: *Input, dt: f32) void {
     self.velocity[0] += input.mouse_delta[0] * dt;
     self.velocity[1] += input.mouse_delta[1] * dt;

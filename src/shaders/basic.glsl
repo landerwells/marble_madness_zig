@@ -1,6 +1,7 @@
 @vs vs
 layout(binding=0) uniform vs_params {
     mat4 model;
+    mat4 view;
     mat4 projection;
     vec2 uv_offset;
     vec2 uv_scale;
@@ -13,7 +14,7 @@ in vec2 texture0;
 out vec2 uv;
 
 void main() {
-    gl_Position = projection * model * vec4(position, 0.0, 1.0);
+    gl_Position = model * view * projection * vec4(position, 0.0, 1.0);
     uv = texture0 * uv_scale + uv_offset;
     uv = (texture0 * uv_scale) + (uv_offset * uv_scale);
 }

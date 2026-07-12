@@ -11,8 +11,9 @@ const slog = sokol.log;
 
 const asset = @import("asset.zig");
 
+const Camera = @import("camera.zig");
 const Input = @import("input.zig");
-const Map = @import("map.zig");
+const TileMap = @import("tile_map.zig");
 const Marble = @import("marble.zig");
 const Renderer = @import("renderer.zig");
 const Tile = @import("tile.zig");
@@ -28,8 +29,10 @@ renderer: Renderer = .{},
 
 input: Input = .{},
 
+camera: Camera = .{},
+
 marble: Marble = .{},
-map: Map = .{},
+tile_map: TileMap = .{},
 
 tile_view: sg.View = .{},
 tile: Tile = .{
@@ -69,9 +72,11 @@ pub fn init(user_data: ?*anyopaque) callconv(.c) void {
         return;
     };
 
-    app.tile_view = sg.makeView(.{
+    const tile_view = sg.makeView(.{
         .texture = .{ .image = background_img },
     });
+
+    app.tile_map.view = tile_view;
 
     app.marble.view = sg.makeView(.{
         .texture = .{ .image = marble_img },
@@ -87,16 +92,31 @@ pub fn deinit(_: ?*anyopaque) callconv(.c) void {
 var time: f32 = 0.0;
 var delta_time: f32 = 1.0 / 60.0;
 
+// I guess we could extract out an entity class?
+//
+// Entity would take
+
 pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     const app: *App = @ptrCast(@alignCast(user_data));
 
     app.marble.update(&app.input, delta_time);
+    app.camera.update(&app.input, delta_time);
 
     sg.beginPass(.{ .swapchain = sglue.swapchain() });
     sg.applyPipeline(app.renderer.pip);
 
-    app.renderer.drawFromSpriteSheet(app.tile_view, app.tile.sheet, app.tile.size, .{ 0.0, 0.0 }, .{ 0.0, 0.0 });
-    app.renderer.drawFromSpriteSheet(app.marble.view, app.marble.sheet, app.marble.size, app.marble.position, .{ 1.0, 4.0 });
+    app.renderer.drawFromSpriteSheet(
+        &app.camera,
+        app.tile_map.view,
+        app.tile_map.tiles[0][0].sheet,
+        .{ 0.5, 0.5 },
+        .{ -1.0, -1.0 },
+        .{ 0.0, 0.0 },
+    );
+    // app.renderer.drawFromSpriteSheet(app.tile_view, app.tile.sheet, app.tile.size, .{ 0.0, 0.0 }, .{ 0.0, 0.0 });
+    // app.renderer.drawFromSpriteSheet(app.tile_view, app.tile.sheet, app.tile.size, .{ 1.0, 1.0 }, .{ 0.0, 0.0 });
+    app.renderer.drawFromTileMap(&app.camera, &app.tile_map);
+    app.renderer.drawFromSpriteSheet(&app.camera, app.marble.view, app.marble.sheet, app.marble.size, app.marble.position, .{ 1.0, 4.0 });
 
     sg.endPass();
     sg.commit();

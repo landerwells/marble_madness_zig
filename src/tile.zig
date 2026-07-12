@@ -2,6 +2,8 @@ const SpriteSheet = @import("sprite_sheet.zig");
 
 const Tile = @This();
 
+// The type and direction will determine what kind of offset
+// needs to be used
 const Type = enum {
     whole,
 };
@@ -28,3 +30,9 @@ sheet: SpriteSheet = SpriteSheet{
     .sprite_width = 16,
     .sprite_height = 16,
 },
+
+pub fn default() Tile {
+    return .{
+        .direction = Tile.Direction.ne,
+    };
+}
