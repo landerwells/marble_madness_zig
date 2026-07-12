@@ -1,11 +1,10 @@
-// Here is where I want to start working on the map
-
 const sokol = @import("sokol");
 const sg = sokol.gfx;
 
-const TileMap = @This();
-const Tile = @import("tile.zig");
 const SpriteSheet = @import("sprite_sheet.zig");
+const Sprite = @import("sprite.zig");
+
+const TileMap = @This();
 
 pub const Width = 10;
 pub const Height = 15;
@@ -13,13 +12,35 @@ pub const Height = 15;
 pub const tile_width = 1;
 pub const tile_height = 1;
 
+const Tile = struct {
+    const Type = enum {
+        whole,
+    };
+
+    pub const Direction = enum {
+        ne,
+        se,
+        sw,
+        nw,
+    };
+    direction: Direction,
+
+    pub fn default() Tile {
+        return .{
+            .direction = Tile.Direction.ne,
+        };
+    }
+};
+
 tiles: [Height][Width]Tile = [_][Width]Tile{[_]Tile{Tile.default()} ** Width} ** Height,
-view: sg.View = .{},
-sheet: SpriteSheet = SpriteSheet{
-    .texture_width = 160,
-    .texture_height = 160,
-    .sprite_width = 16,
-    .sprite_height = 16,
+
+sprite: Sprite = Sprite{
+    .sheet = &SpriteSheet{
+        .texture_width = 160,
+        .texture_height = 160,
+        .sprite_width = 16,
+        .sprite_height = 16,
+    },
 },
 
 pub fn init() TileMap {

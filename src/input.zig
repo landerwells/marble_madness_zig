@@ -25,6 +25,7 @@ pub fn eventHanlder(self: *Input, e: *const sapp.Event) void {
         },
 
         .KEY_DOWN => {
+            // Not sure if this should be a switch statement?
             switch (e.key_code) {
                 .ESCAPE => {
                     sapp.lockMouse(false);

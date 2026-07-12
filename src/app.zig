@@ -16,7 +16,7 @@ const Input = @import("input.zig");
 const TileMap = @import("tile_map.zig");
 const Marble = @import("marble.zig");
 const Renderer = @import("renderer.zig");
-const Tile = @import("tile.zig");
+const Sprite = @import("sprite.zig");
 
 const App = @This();
 
@@ -25,6 +25,8 @@ const INTERNAL_HEIGHT = 240;
 const SPRITE_SIZE = 32;
 
 io: std.Io,
+arena: std.heap.ArenaAllocator = std.heap.ArenaAllocator.init(std.heap.page_allocator),
+
 renderer: Renderer = .{},
 
 input: Input = .{},
@@ -34,11 +36,6 @@ camera: Camera = .{},
 marble: Marble = .{},
 tile_map: TileMap = .{},
 
-tile_view: sg.View = .{},
-tile: Tile = .{
-    .direction = Tile.Direction.ne,
-},
-
 pub fn init(user_data: ?*anyopaque) callconv(.c) void {
     const app: *App = @ptrCast(@alignCast(user_data));
 
@@ -47,14 +44,11 @@ pub fn init(user_data: ?*anyopaque) callconv(.c) void {
         .logger = .{ .func = slog.func },
     });
 
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
+    const allocator = app.arena.allocator();
 
-    const alloc = arena.allocator();
-
-    const background_img = asset.loadImage(
+    const tile_img = asset.loadImage(
         app.io,
-        alloc,
+        allocator,
         "assets/tileset.png",
     ) catch |err| {
         std.log.err("failed to load image: {}", .{err});
@@ -64,7 +58,7 @@ pub fn init(user_data: ?*anyopaque) callconv(.c) void {
 
     const marble_img = asset.loadImage(
         app.io,
-        alloc,
+        allocator,
         "assets/misc.png",
     ) catch |err| {
         std.log.err("failed to load image: {}", .{err});
@@ -72,29 +66,50 @@ pub fn init(user_data: ?*anyopaque) callconv(.c) void {
         return;
     };
 
-    const tile_view = sg.makeView(.{
-        .texture = .{ .image = background_img },
-    });
+    const marble_texture = allocator.create(Sprite.Texture) catch |err| {
+        std.log.err("failed to allocate marble_texture: {}", .{err});
+        sapp.requestQuit();
+        return;
+    };
 
-    app.tile_map.view = tile_view;
+    marble_texture.* = .{
+        .view = sg.makeView(.{
+            .texture = .{
+                .image = marble_img,
+            },
+        }),
+    };
 
-    app.marble.view = sg.makeView(.{
-        .texture = .{ .image = marble_img },
-    });
+    app.marble.sprite.texture = marble_texture;
+
+    const tile_texture = allocator.create(Sprite.Texture) catch |err| {
+        std.log.err("failed to allocate marble_texture: {}", .{err});
+        sapp.requestQuit();
+        return;
+    };
+
+    tile_texture.* = .{
+        .view = sg.makeView(.{
+            .texture = .{
+                .image = tile_img,
+            },
+        }),
+    };
+
+    app.tile_map.sprite.texture = tile_texture;
 
     app.renderer.init();
 }
 
-pub fn deinit(_: ?*anyopaque) callconv(.c) void {
+pub fn deinit(user_data: ?*anyopaque) callconv(.c) void {
+    const app: *App = @ptrCast(@alignCast(user_data));
+
+    app.arena.deinit();
     sg.shutdown();
 }
 
 var time: f32 = 0.0;
 var delta_time: f32 = 1.0 / 60.0;
-
-// I guess we could extract out an entity class?
-//
-// Entity would take
 
 pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     const app: *App = @ptrCast(@alignCast(user_data));
@@ -105,18 +120,14 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     sg.beginPass(.{ .swapchain = sglue.swapchain() });
     sg.applyPipeline(app.renderer.pip);
 
-    app.renderer.drawFromSpriteSheet(
-        &app.camera,
-        app.tile_map.view,
-        app.tile_map.tiles[0][0].sheet,
-        .{ 0.5, 0.5 },
-        .{ -1.0, -1.0 },
-        .{ 0.0, 0.0 },
-    );
-    // app.renderer.drawFromSpriteSheet(app.tile_view, app.tile.sheet, app.tile.size, .{ 0.0, 0.0 }, .{ 0.0, 0.0 });
-    // app.renderer.drawFromSpriteSheet(app.tile_view, app.tile.sheet, app.tile.size, .{ 1.0, 1.0 }, .{ 0.0, 0.0 });
     app.renderer.drawFromTileMap(&app.camera, &app.tile_map);
-    app.renderer.drawFromSpriteSheet(&app.camera, app.marble.view, app.marble.sheet, app.marble.size, app.marble.position, .{ 1.0, 4.0 });
+
+    app.renderer.draw(
+        &app.camera,
+        &app.marble.sprite,
+        app.marble.position,
+        app.marble.size,
+    );
 
     sg.endPass();
     sg.commit();
