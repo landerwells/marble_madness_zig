@@ -21,5 +21,13 @@
 - [ ] Clean up repo and make public
 
 - [ ] Need to start building UI elements, and get fonts rendering
+- [ ] Also need to start working on Menu
 
 Alright, goal for right now is to get the sprite sheet animation working??
+
+I would really like to get to around 5k lines of code in this project. Just to
+feel out how to work with Zig, and say that maybe I am a bit of a Zig programmer.
+
+
+I need some way of working with map files, and getting them into and out of the
+game engine.

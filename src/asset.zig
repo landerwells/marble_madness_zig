@@ -25,6 +25,8 @@ pub fn loadImage(io: std.Io, allocator: std.mem.Allocator, path: []const u8) !sg
     });
 }
 
-pub fn loadMap() void {}
+pub fn loadTileMap() void {}
+
+pub fn generateTileMap() void {}
 
 pub fn loadFont() void {}

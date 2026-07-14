@@ -29,10 +29,8 @@ arena: std.heap.ArenaAllocator = std.heap.ArenaAllocator.init(std.heap.page_allo
 
 renderer: Renderer = .{},
 
-input: Input = .{},
-
 camera: Camera = .{},
-
+input: Input = .{},
 marble: Marble = .{},
 tile_map: TileMap = .{},
 
@@ -108,14 +106,28 @@ pub fn deinit(user_data: ?*anyopaque) callconv(.c) void {
     sg.shutdown();
 }
 
+// TODO: Set up state and lerp across values
+var delta_time: f32 = 0.01;
 var time: f32 = 0.0;
-var delta_time: f32 = 1.0 / 60.0;
+var accumulator: f32 = 0.0;
 
 pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     const app: *App = @ptrCast(@alignCast(user_data));
 
-    app.marble.update(&app.input, delta_time);
-    app.camera.update(&app.input, delta_time);
+    const frame_time: f32 = @as(f32, @floatCast(sapp.frameDuration()));
+    // if (frame_time > 0.25) {
+    //     frame_time = 0.25;
+    // }
+
+    accumulator += frame_time;
+
+    while (accumulator >= delta_time) {
+        app.marble.update(&app.input, delta_time);
+        app.camera.update(&app.input, delta_time);
+
+        accumulator -= delta_time;
+        time += delta_time;
+    }
 
     sg.beginPass(.{ .swapchain = sglue.swapchain() });
     sg.applyPipeline(app.renderer.pip);
@@ -133,7 +145,6 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     sg.commit();
 
     app.input.frameEnd();
-    time += delta_time;
 }
 
 pub fn event(ev: ?*const sapp.Event, user_data: ?*anyopaque) callconv(.c) void {

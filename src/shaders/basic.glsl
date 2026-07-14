@@ -14,7 +14,7 @@ in vec2 texture0;
 out vec2 uv;
 
 void main() {
-    gl_Position = model * view * projection * vec4(position, 0.0, 1.0);
+    gl_Position = projection * view * model * vec4(position, 0.0, 1.0);
     uv = texture0 * uv_scale + uv_offset;
     uv = (texture0 * uv_scale) + (uv_offset * uv_scale);
 }

@@ -9,10 +9,10 @@ const TileMap = @This();
 pub const Width = 10;
 pub const Height = 15;
 
-pub const tile_width = 1;
-pub const tile_height = 1;
-
 const Tile = struct {
+    pub const WIDTH = 1.0;
+    pub const HEIGHT = 0.5;
+
     const Type = enum {
         whole,
     };
@@ -23,7 +23,16 @@ const Tile = struct {
         sw,
         nw,
     };
+
+    // Was thinking of a list of each item a Tile needs
+    // - Color details, unless that belongs to the level
+    // - x, y, z, unless that belongs to the TileMap
+    // -
+
+    // type: Type,
+    // height: u8,
     direction: Direction,
+    // palette: u8,
 
     pub fn default() Tile {
         return .{
@@ -49,11 +58,15 @@ pub fn init() TileMap {
     };
 }
 
-// What are even world coordinates? Do they go from -1 => 1?
-pub fn tileToWorld(_: *TileMap, tile_x: usize, tile_y: usize) [2]f32 {
+pub fn tileToWorld(_: *TileMap, x: f32, y: f32) [2]f32 {
     // return .{
     //     @as(f32, @floatFromInt(tile_x - tile_y)) * 0.5,
     //     @as(f32, @floatFromInt(tile_x + tile_y)) * 0.5,
     // };
-    return .{ @as(f32, @floatFromInt(tile_x)), @as(f32, @floatFromInt(tile_y)) };
+    //
+    return .{
+        (x - y) * Tile.WIDTH / 2,
+        (x + y) * Tile.HEIGHT / 2,
+    };
+    // return .{ @as(f32, @floatFromInt(x)), @as(f32, @floatFromInt(y)) };
 }

@@ -79,10 +79,6 @@ pub fn init(self: *Renderer) void {
     });
 }
 
-// Everything that we draw is going to have a sprite, and each sprite
-// will be coming from a sprite sheet. Then all we need is position
-// and size. I think this is the cleanest abstraction I can get for now.
-// All drawing should go through here.
 pub fn draw(
     self: *Renderer,
     camera: *Camera,
@@ -97,7 +93,12 @@ pub fn draw(
     const uniforms = shd.VsParams{
         .model = zmath.matToArr(model),
         .view = zmath.matToArr(view_matrix),
-        .projection = zmath.matToArr(zmath.orthographicLhGl(camera.screen_x, camera.screen_y, -1.0, 1.0)),
+        .projection = zmath.matToArr(zmath.orthographicLhGl(
+            camera.screen_x,
+            camera.screen_y,
+            -1.0,
+            1.0,
+        )),
         .uv_offset = sprite.offset,
         .uv_scale = sprite.sheet.?.uvScale(),
     };
@@ -109,6 +110,8 @@ pub fn draw(
 }
 
 // TODO: Need to modify in order to correctly print an isometric map.
+// Thinking about this a little more, essentially the width on every
+// draw call is not going to be the same
 pub fn drawFromTileMap(
     self: *Renderer,
     camera: *Camera,
@@ -121,8 +124,16 @@ pub fn drawFromTileMap(
         var x = tile_map.tiles[y].len;
         while (x > 0) {
             x -= 1;
-            const position: [2]f32 = .{ @floatFromInt(x), @floatFromInt(y) };
-            self.draw(camera, &tile_map.sprite, .{ position[0], position[1] }, .{ 0.5, 0.5 });
+            const position: [2]f32 = tile_map.tileToWorld(@as(f32, @floatFromInt(x)), @as(f32, @floatFromInt(y)));
+            self.draw(
+                camera,
+                &tile_map.sprite,
+                .{ position[0], position[1] },
+                .{ 0.5, 0.5 },
+            );
         }
     }
 }
+
+// This function needs to correctly call the draw function with position
+fn drawTile() void {}
