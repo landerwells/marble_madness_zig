@@ -122,7 +122,7 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     accumulator += frame_time;
 
     while (accumulator >= delta_time) {
-        app.marble.update(&app.input, delta_time);
+        app.marble.update(&app.input, &app.tile_map, delta_time);
         app.camera.update(&app.input, delta_time);
 
         accumulator -= delta_time;

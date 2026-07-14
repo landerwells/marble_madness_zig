@@ -8,7 +8,6 @@ layout(binding=0) uniform vs_params {
 };
 
 in vec2 position;
-// Rename to texture_uv or something like that
 in vec2 texture0;
 
 out vec2 uv;

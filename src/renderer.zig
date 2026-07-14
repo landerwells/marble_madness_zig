@@ -79,6 +79,8 @@ pub fn init(self: *Renderer) void {
     });
 }
 
+// TODO: Update to handle [3]f32 position since both tiles and the marble will
+// have depth as well.
 pub fn draw(
     self: *Renderer,
     camera: *Camera,

@@ -1,4 +1,4 @@
-* TODO Evergrowing todo list [12/21]
+* TODO Evergrowing todo list [13/24]
 - [X] Initial commit
 - [X] Add sokol-zig
 - [X] Get a window
@@ -22,6 +22,9 @@
 
 - [ ] Need to start building UI elements, and get fonts rendering
 - [ ] Also need to start working on Menu
+
+- [ ] Add imgui into engine
+- [ ] Add emscripten support for browser rendering
 
 Alright, goal for right now is to get the sprite sheet animation working??
 
