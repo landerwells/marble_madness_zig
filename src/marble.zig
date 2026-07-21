@@ -13,8 +13,8 @@ const Marble = @This();
 
 const MASS = 1.0;
 
-const MOVE_ACCEL = 1.0;
-const MAX_SPEED = 1.0;
+const MOVE_ACCEL = 1.5;
+const MAX_SPEED = 2.0;
 const FRICTION = 2.0;
 const GRAVITY = 1.0;
 
@@ -41,6 +41,7 @@ sprite: Sprite = Sprite{
 // - General movement
 //
 // TODO: Need to convert mouse movement into isometric tile movement
+// TODO: Marble also needs to be displayed pixel aligned, not sure how to implement
 pub fn update(self: *Marble, input: *Input, _: *TileMap, delta_time: f32) void {
     self.acceleration[0] = input.mouse_delta[0] / MASS;
     self.acceleration[1] = input.mouse_delta[1] / MASS;

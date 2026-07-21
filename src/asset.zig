@@ -33,4 +33,20 @@ pub fn loadTileMap() void {}
 
 pub fn generateTileMap() void {}
 
-pub fn loadFont() void {}
+pub fn loadFont(allocator: std.mem.Allocator) void {
+    const font_bytes = try std.fs.cwd().readFileAlloc(
+        allocator,
+        "assets/font/Pixelated.ttf",
+        10 * 1024 * 1024,
+    );
+
+    var font_info: c.stbtt_fontinfo = undefined;
+
+    if (c.stbtt_InitFont(
+        &font_info,
+        font_bytes.ptr,
+        c.stbtt_GetFontOffsetForIndex(font_bytes.ptr, 0),
+    ) == 0) {
+        return error.InvalidFont;
+    }
+}

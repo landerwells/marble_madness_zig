@@ -11,9 +11,9 @@ right: bool = false,
 up: bool = false,
 down: bool = false,
 
-// Current issues I am having with the input
-// - [ ] Was having some frame end issues
-// - [ ] Codes are still getting priority over others
+// eventHanlder should be able to report WHERE in world coordinates the mouse
+// is, when not in a focused mode. Kind of need to hook up truetype font
+// rendering now.
 pub fn eventHanlder(self: *Input, e: *const sapp.Event) void {
     switch (e.type) {
         .MOUSE_MOVE => {

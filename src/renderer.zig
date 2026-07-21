@@ -11,6 +11,8 @@ const TileMap = @import("tile_map.zig");
 bind: sg.Bindings = .{},
 pip: sg.Pipeline = .{},
 
+current_texture: ?*const Sprite.Texture = null,
+
 // TODO: Long term need to refactor renderer to support batching
 //
 const Vertex = struct {
@@ -83,14 +85,13 @@ pub fn init(self: *Renderer) void {
 
 pub fn draw(
     self: *Renderer,
-    _: *Camera,
     view: [16]f32,
     projection: [16]f32,
+    tint: [3]f32,
     sprite: *Sprite,
     position: [2]f32,
     size: [2]f32,
 ) void {
-    // Basically instead of just doing this, we need to
     var model = zmath.translationV(position[0..2].* ++ .{ 0.0, 0.0 });
     model = zmath.mul(model, zmath.scaling(size[0], size[1], 1.0));
 
@@ -98,12 +99,18 @@ pub fn draw(
         .model = zmath.matToArr(model),
         .view = view,
         .projection = projection,
+        // We are passing this in as a uniform right now, but I believe
+        // this should just be part of a dynamic vertex buffer.
+        .tint = tint,
         .uv_offset = sprite.offset,
         .uv_scale = sprite.sheet.?.uvScale(),
     };
 
-    self.bind.views[shd.VIEW_tex] = sprite.texture.?.view;
-    sg.applyBindings(self.bind);
+    if (self.current_texture != sprite.texture.?) {
+        self.current_texture = sprite.texture.?;
+        self.bind.views[shd.VIEW_tex] = sprite.texture.?.view;
+        sg.applyBindings(self.bind);
+    }
     sg.applyUniforms(shd.UB_vs_params, sg.asRange(&uniforms));
     sg.draw(0, 6, 1);
 }

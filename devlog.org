@@ -1,0 +1,78 @@
+#+title: Marble madness dev log
+#+date: July 05, 2026 12:51 PM
+
+I am thinking of publishing my dev log for marble madness. I haven't done any
+writeups before, so I think this would be a good idea to get started.
+
+2026-07-11
+https://clintbellanger.net/articles/isometric_math/
+
+
+2026-07-12
+Started today working on getting the camera and tilemap working more correctly.
+I think some of the behavior that I want to implement today
+- [X] Get camera movement working with the arrow keys
+- [ ] Get a properly rendering TileMap
+- [X] Abstract the draw call in the renderer, and fix up its parameters
+
+Today I felt super while doing the development. I wasn't only making progress
+but improving overall. I could feel my brain working itself into the problem
+space and getting more confident with the more time I put in.
+
+Got a much nicer abstraction for my draw call. I like how things are working out here.
+#+begin_src zig
+pub fn draw(
+    self: *Renderer,
+    camera: *Camera,
+    sprite: *Sprite,
+    position: [2]f32,
+    size: [2]f32,
+) void {
+    var model = zmath.translationV(position ++ .{ 0.0, 0.0 });
+    model = zmath.mul(model, zmath.scaling(size[0], size[1], 1.0));
+    const view_matrix = camera.view();
+
+    const uniforms = shd.VsParams{
+        .model = zmath.matToArr(model),
+        .view = zmath.matToArr(view_matrix),
+        .projection = zmath.matToArr(zmath.orthographicLhGl(camera.screen_x, camera.screen_y, -1.0, 1.0)),
+        .uv_offset = sprite.offset,
+        .uv_scale = sprite.sheet.?.uvScale(),
+    };
+
+    self.bind.views[shd.VIEW_tex] = sprite.texture.?.view;
+    sg.applyBindings(self.bind);
+    sg.applyUniforms(shd.UB_vs_params, sg.asRange(&uniforms));
+    sg.draw(0, 6, 1);
+}
+
+#+end_src
+
+* 2026-07-14
+Using a shader to dynamically update a sprites colors
+
+* 2026-07-21
+Removed the ~drawTileMap()~ function from the renderer as it is not it's
+responsibility to handle information about the level. I reversed all of loops
+and finally got all of my Tiles drawing correctly.
+
+I have started noticing performance issues with the amount of tiles that I am
+needing to draw, and a suboptimal draw call that is recalculating a lot of
+infromation every frame isn't helping. I will be looking into batching and
+optimizing my renderer to cleanly draw a lot of these quads per frame.
+
+I added the ability to add tint to the fragment shader, and from there
+programatically found the single tile that the marble was currently over, and
+tinted it yellow.
+
+I will now commence a great thinking about what data types to use for all of the
+numerical values.
+
+Technically isometric tiles can be negative in value, but with a 3 dimensional
+array representing them, it doesn't make a whole lot of sense.
+
+The marble's position needs to comprise of 3 floats, that much makes sense since
+it can be anywhere in between Tiles, and is not constrained to whole numbers.
+
+I think ~draw()~ needs to be taking in floats regardless, so I believe the
+tilemap should just be converting to floats.

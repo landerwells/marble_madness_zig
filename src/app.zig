@@ -140,23 +140,27 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
         1.0,
     ));
 
-    // TODO: Make it work with 3 dimensions, need to prioritize what to draw,
-    // I'll have to get this working for right now, and then clean it up later.
-    //
-    // Jesus christ this is not even close to fast or efficient. What should I be
-    // doing to optimize?
+    // Uhhh, technically the marble is supposed to be like 20 tiles high
+    std.debug.print("{any}\n", .{app.marble.position});
+
     for (0..app.tile_map.tiles.len) |z| {
         for (0..app.tile_map.tiles[0].len) |y| {
             for (0..app.tile_map.tiles[0][0].len) |x| {
+                var tint: [3]f32 = .{ 1.0, 1.0, 1.0 };
                 const position = app.tile_map.tileToWorld(
                     app.tile_map.tiles.len - x,
                     app.tile_map.tiles.len - y,
                     app.tile_map.tiles.len - z,
                 );
+                // Looks like this is doing the wrong thing pretty much.
+                // I need to rectify my usage of floats, usizes, and everything else. Its all getting jumbled at this point.
+                if (@as(i32, @intFromFloat(@floor(app.marble.position[0]))) == x and @as(i32, @intFromFloat(@floor(app.marble.position[1]))) == y) {
+                    tint = .{ 1.0, 1.0, 0.0 };
+                }
                 app.renderer.draw(
-                    &app.camera,
                     view,
                     projection,
+                    tint,
                     &app.tile_map.sprite,
                     position,
                     .{ 0.5, 0.5 },
@@ -166,9 +170,9 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     }
 
     app.renderer.draw(
-        &app.camera,
         view,
         projection,
+        .{ 1.0, 1.0, 1.0 },
         &app.marble.sprite,
         app.tile_map.tileToWorldFloat(
             app.marble.position[0],

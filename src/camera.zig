@@ -15,8 +15,7 @@ screen_y: f32 = 6.0,
 
 const CAMERA_SPEED = 1.0;
 
-// Technically we should set up some sort of linear interpolation for the
-// camera.
+// Camera should be pixel aligned?
 pub fn update(self: *Camera, input: *Input, dt: f32) void {
     if (input.left) self.position[0] -= CAMERA_SPEED * dt;
     if (input.right) self.position[0] += CAMERA_SPEED * dt;

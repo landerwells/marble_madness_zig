@@ -58,11 +58,6 @@ pub fn init() TileMap {
     return .{};
 }
 
-// I need to be thinking about how I want to structure the world space. Z
-// obviously needs to control the height that the tile actually gets printed at.
-//
-// But then how do X and Y interact, and
-//  So if we have two tiles with the same X and Y, but the Z is the same
 pub fn tileToWorld(_: *TileMap, x: usize, y: usize, z: usize) [2]f32 {
     const fx = @as(f32, @floatFromInt(x));
     const fy = @as(f32, @floatFromInt(y));
@@ -78,5 +73,16 @@ pub fn tileToWorldFloat(_: *TileMap, x: f32, y: f32, z: f32) [2]f32 {
     return .{
         (x - y) * Tile.WIDTH / 2,
         (x + y) * Tile.HEIGHT / 2 - z * Tile.HEIGHT,
+    };
+}
+
+pub fn worldToTile(
+    _: *TileMap,
+    x: f32,
+    y: f32,
+) [2]f32 {
+    return .{
+        (x - y) * Tile.WIDTH / 2,
+        (x + y) * Tile.HEIGHT / 2,
     };
 }
