@@ -23,6 +23,7 @@ different sections so I can get a clearer overview of what actually needs work.
 - [X] Fix input only being able to come from a single source
 
 ** Map
+- [ ] Convert the mouse coordinates to world coordinates.
 - [ ] Work on first level
 - [ ] Set up getter for tiles on the screen, need to be able to poll which tile
   the marble is currently on.

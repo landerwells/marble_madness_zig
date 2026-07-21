@@ -58,7 +58,8 @@ pub fn init() TileMap {
     return .{};
 }
 
-pub fn tileToWorld(_: *TileMap, x: usize, y: usize, z: usize) [2]f32 {
+// Not sure any of these utility functions even need to be methods
+pub fn tileToWorld(x: usize, y: usize, z: usize) [2]f32 {
     const fx = @as(f32, @floatFromInt(x));
     const fy = @as(f32, @floatFromInt(y));
     const fz = @as(f32, @floatFromInt(z));
@@ -69,7 +70,7 @@ pub fn tileToWorld(_: *TileMap, x: usize, y: usize, z: usize) [2]f32 {
     };
 }
 
-pub fn tileToWorldFloat(_: *TileMap, x: f32, y: f32, z: f32) [2]f32 {
+pub fn tileToWorldFloat(x: f32, y: f32, z: f32) [2]f32 {
     return .{
         (x - y) * Tile.WIDTH / 2,
         (x + y) * Tile.HEIGHT / 2 - z * Tile.HEIGHT,
@@ -77,7 +78,6 @@ pub fn tileToWorldFloat(_: *TileMap, x: f32, y: f32, z: f32) [2]f32 {
 }
 
 pub fn worldToTile(
-    _: *TileMap,
     x: f32,
     y: f32,
 ) [2]f32 {

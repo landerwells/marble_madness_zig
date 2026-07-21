@@ -42,6 +42,8 @@ sprite: Sprite = Sprite{
 //
 // TODO: Need to convert mouse movement into isometric tile movement
 // TODO: Marble also needs to be displayed pixel aligned, not sure how to implement
+// TODO: Even more thoughts about the marble. Technically we really care about the
+// bottom center of the marble.
 pub fn update(self: *Marble, input: *Input, _: *TileMap, delta_time: f32) void {
     self.acceleration[0] = input.mouse_delta[0] / MASS;
     self.acceleration[1] = input.mouse_delta[1] / MASS;

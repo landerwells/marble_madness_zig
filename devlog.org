@@ -1,6 +1,26 @@
 #+title: Marble madness dev log
 #+date: July 05, 2026 12:51 PM
 
+I am starting this dev log a little late, but I want to document my progress of
+building this game, and share some low-level 2d isometric tips along the way. At
+time of writing this (2026-07-21) I have been working on this game/engine for a
+few months. According to the repo, I have been working on this project for about
+two months.
+
+I started this project due to the frustrations of working with C++, and my
+inability to get a C project that I was happy with. I have worked with OpenGL
+before, so this is not my first foray into graphics programming, but it will be
+my first completed project, fingers crossed.
+
+
+Using AI agents to me feels like creative mode in Minecraft. You are still able
+to build, and possibly way more than in Survival mode, but a lot of the joy of
+playing is taken away. I try to steer clear of using AI, but I have used it to
+solve a few of the issues I was having in order to get the repo set up and
+working on MacOS and Linux.
+
+
+
 I am thinking of publishing my dev log for marble madness. I haven't done any
 writeups before, so I think this would be a good idea to get started.
 
@@ -76,3 +96,16 @@ it can be anywhere in between Tiles, and is not constrained to whole numbers.
 
 I think ~draw()~ needs to be taking in floats regardless, so I believe the
 tilemap should just be converting to floats.
+
+By adding this simple check, I was able to improve the performance back to
+acceptable levels. It eliminates all of the repeated work of uploading the same
+texture to the GPU every time a ~Tile~ gets drawn.
+
+#+begin_src zig
+    if (self.current_texture != sprite.texture.?) {
+        self.current_texture = sprite.texture.?;
+        self.bind.views[shd.VIEW_tex] = sprite.texture.?.view;
+        sg.applyBindings(self.bind);
+    }
+
+#+end_src

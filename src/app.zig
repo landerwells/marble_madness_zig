@@ -147,14 +147,14 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
         for (0..app.tile_map.tiles[0].len) |y| {
             for (0..app.tile_map.tiles[0][0].len) |x| {
                 var tint: [3]f32 = .{ 1.0, 1.0, 1.0 };
-                const position = app.tile_map.tileToWorld(
+                const position = TileMap.tileToWorld(
                     app.tile_map.tiles.len - x,
                     app.tile_map.tiles.len - y,
                     app.tile_map.tiles.len - z,
                 );
                 // Looks like this is doing the wrong thing pretty much.
                 // I need to rectify my usage of floats, usizes, and everything else. Its all getting jumbled at this point.
-                if (@as(i32, @intFromFloat(@floor(app.marble.position[0]))) == x and @as(i32, @intFromFloat(@floor(app.marble.position[1]))) == y) {
+                if (@as(i32, @intFromFloat(@floor(app.marble.position[0] * 2))) == x and @as(i32, @intFromFloat(@floor(app.marble.position[1] * 2))) == y) {
                     tint = .{ 1.0, 1.0, 0.0 };
                 }
                 app.renderer.draw(
@@ -174,7 +174,7 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
         projection,
         .{ 1.0, 1.0, 1.0 },
         &app.marble.sprite,
-        app.tile_map.tileToWorldFloat(
+        TileMap.tileToWorldFloat(
             app.marble.position[0],
             app.marble.position[1],
             app.marble.position[2],
