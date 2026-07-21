@@ -15,16 +15,13 @@ screen_y: f32 = 6.0,
 
 const CAMERA_SPEED = 1.0;
 
+// Technically we should set up some sort of linear interpolation for the
+// camera.
 pub fn update(self: *Camera, input: *Input, dt: f32) void {
-    if (input.left) {
-        self.position[0] -= CAMERA_SPEED * dt;
-    } else if (input.right) {
-        self.position[0] += CAMERA_SPEED * dt;
-    } else if (input.up) {
-        self.position[1] += CAMERA_SPEED * dt;
-    } else if (input.down) {
-        self.position[1] -= CAMERA_SPEED * dt;
-    }
+    if (input.left) self.position[0] -= CAMERA_SPEED * dt;
+    if (input.right) self.position[0] += CAMERA_SPEED * dt;
+    if (input.up) self.position[1] += CAMERA_SPEED * dt;
+    if (input.down) self.position[1] -= CAMERA_SPEED * dt;
 }
 
 pub fn view(self: *Camera) zmath.Mat {

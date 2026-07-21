@@ -4,6 +4,10 @@ const sokol = @import("sokol");
 const sg = sokol.gfx;
 const zigimg = @import("zigimg");
 
+const c = @cImport({
+    @cInclude("stb_truetype.h");
+});
+
 // Should rename to texture, and asset.zig should load and
 // store all of the assets for the app.
 pub fn loadImage(io: std.Io, allocator: std.mem.Allocator, path: []const u8) !sg.Image {

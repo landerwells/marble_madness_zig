@@ -1,3 +1,5 @@
+const std = @import("std");
+
 const sokol = @import("sokol");
 const sg = sokol.gfx;
 
@@ -16,9 +18,8 @@ const MAX_SPEED = 1.0;
 const FRICTION = 2.0;
 const GRAVITY = 1.0;
 
-// Position is going to be the in game position of the marble,
-// No longer the world posiiton
-position: [2]f32 = .{ 0.0, 0.0 },
+position: [3]f32 = .{ 0.0, 0.0, 0.0 },
+accumulated_position: [2]f32 = .{ 0.0, 0.0 },
 velocity: [2]f32 = .{ 0.0, 0.0 },
 acceleration: [2]f32 = .{ 0.0, 0.0 },
 
@@ -38,6 +39,8 @@ sprite: Sprite = Sprite{
 // - Gravity for the marble
 // - Sprite updates
 // - General movement
+//
+// TODO: Need to convert mouse movement into isometric tile movement
 pub fn update(self: *Marble, input: *Input, _: *TileMap, delta_time: f32) void {
     self.acceleration[0] = input.mouse_delta[0] / MASS;
     self.acceleration[1] = input.mouse_delta[1] / MASS;
@@ -57,4 +60,23 @@ pub fn update(self: *Marble, input: *Input, _: *TileMap, delta_time: f32) void {
 
     self.position[0] += self.velocity[0] * delta_time;
     self.position[1] += self.velocity[1] * delta_time;
+
+    self.accumulated_position[0] += self.velocity[0] * delta_time;
+    self.accumulated_position[1] += self.velocity[1] * delta_time;
+
+    // Sprite updates
+    // std.debug.print("{any}\n", .{self.accumulated_position});
+    if (self.accumulated_position[1] > 0.05) {
+        const new_offset = @mod(self.sprite.offset[0] + 1, 9);
+        self.sprite.offset = .{ new_offset, self.sprite.offset[1] };
+        self.accumulated_position[0] = 0;
+        self.accumulated_position[1] = 0;
+    }
+
+    if (self.accumulated_position[1] < -0.05) {
+        const new_offset = @mod(self.sprite.offset[0] - 1, 9);
+        self.sprite.offset = .{ new_offset, self.sprite.offset[1] };
+        self.accumulated_position[0] = 0;
+        self.accumulated_position[1] = 0;
+    }
 }

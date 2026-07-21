@@ -11,6 +11,9 @@ right: bool = false,
 up: bool = false,
 down: bool = false,
 
+// Current issues I am having with the input
+// - [ ] Was having some frame end issues
+// - [ ] Codes are still getting priority over others
 pub fn eventHanlder(self: *Input, e: *const sapp.Event) void {
     switch (e.type) {
         .MOUSE_MOVE => {
@@ -25,13 +28,23 @@ pub fn eventHanlder(self: *Input, e: *const sapp.Event) void {
         },
 
         .KEY_DOWN => {
-            // Not sure if this should be a switch statement?
             switch (e.key_code) {
                 .ESCAPE => sapp.lockMouse(false),
                 .LEFT => self.left = true,
                 .RIGHT => self.right = true,
                 .UP => self.up = true,
                 .DOWN => self.down = true,
+                .Q => sapp.requestQuit(),
+                else => {},
+            }
+        },
+
+        .KEY_UP => {
+            switch (e.key_code) {
+                .LEFT => self.left = false,
+                .RIGHT => self.right = false,
+                .UP => self.up = false,
+                .DOWN => self.down = false,
                 .Q => sapp.requestQuit(),
                 else => {},
             }
@@ -47,8 +60,4 @@ pub fn eventHanlder(self: *Input, e: *const sapp.Event) void {
 
 pub fn frameEnd(self: *Input) void {
     self.mouse_delta = .{ 0.0, 0.0 };
-    self.left = false;
-    self.right = false;
-    self.up = false;
-    self.down = false;
 }

@@ -1,4 +1,4 @@
-* TODO Evergrowing todo list [13/24]
+* TODO Evergrowing todo list [16/17]
 - [X] Initial commit
 - [X] Add sokol-zig
 - [X] Get a window
@@ -12,25 +12,29 @@
 - [X] Set up projection matrix
 - [X] Unflip the textures
 - [X] Texture atlases back please
-- [ ] Get starter level working with some basic geometry
-- [ ] Fix my timestep
-- [ ] Get sprite sheet animation working
-- [ ] Load files in from Tiled
-- [ ] Work on first level
-- [ ] Rename project to rollout_zig
-- [ ] Clean up repo and make public
+- [X] Get starter level working with some basic geometry
+- [X] Fix my timestep (I kind of did this last time)
+- [X] Get sprite sheet animation working (This is essentially "working". I need
+  other features more now before I start fine tuning the feel of animations)
 
+At this point I am going to start splitting out the todo lists into multiple
+different sections so I can get a clearer overview of what actually needs work.
+** Input
+- [X] Fix input only being able to come from a single source
+
+** Map
+- [ ] Work on first level
+- [ ] Set up getter for tiles on the screen, need to be able to poll which tile
+  the marble is currently on.
+
+** UI
+- [ ] Clean up assets folder and asset loading lib
 - [ ] Need to start building UI elements, and get fonts rendering
 - [ ] Also need to start working on Menu
-
 - [ ] Add imgui into engine
+
+** Misc
 - [ ] Add emscripten support for browser rendering
-
-Alright, goal for right now is to get the sprite sheet animation working??
-
-I would really like to get to around 5k lines of code in this project. Just to
-feel out how to work with Zig, and say that maybe I am a bit of a Zig programmer.
-
-
-I need some way of working with map files, and getting them into and out of the
-game engine.
+- [ ] Rename project
+- [ ] True type font support added
+- [ ] Batch rendering

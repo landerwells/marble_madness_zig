@@ -6,8 +6,9 @@ const Sprite = @import("sprite.zig");
 
 const TileMap = @This();
 
-pub const Width = 10;
-pub const Height = 15;
+pub const X = 20;
+pub const Y = 20;
+pub const Z = 20;
 
 const Tile = struct {
     pub const WIDTH = 1.0;
@@ -41,7 +42,8 @@ const Tile = struct {
     }
 };
 
-tiles: [Height][Width]Tile = [_][Width]Tile{[_]Tile{Tile.default()} ** Width} ** Height,
+tiles: [Z][Y][X]Tile =
+    [_][Y][X]Tile{[_][X]Tile{[_]Tile{Tile.default()} ** X} ** Y} ** Z,
 
 sprite: Sprite = Sprite{
     .sheet = &SpriteSheet{
@@ -53,20 +55,28 @@ sprite: Sprite = Sprite{
 },
 
 pub fn init() TileMap {
+    return .{};
+}
+
+// I need to be thinking about how I want to structure the world space. Z
+// obviously needs to control the height that the tile actually gets printed at.
+//
+// But then how do X and Y interact, and
+//  So if we have two tiles with the same X and Y, but the Z is the same
+pub fn tileToWorld(_: *TileMap, x: usize, y: usize, z: usize) [2]f32 {
+    const fx = @as(f32, @floatFromInt(x));
+    const fy = @as(f32, @floatFromInt(y));
+    const fz = @as(f32, @floatFromInt(z));
+
     return .{
-        .tiles = [_][Width]Tile{[_]Tile{Tile.default()} ** Width} ** Height,
+        (fx - fy) * Tile.WIDTH / 2,
+        (fx + fy) * Tile.HEIGHT / 2 - fz * Tile.HEIGHT,
     };
 }
 
-pub fn tileToWorld(_: *TileMap, x: f32, y: f32) [2]f32 {
-    // return .{
-    //     @as(f32, @floatFromInt(tile_x - tile_y)) * 0.5,
-    //     @as(f32, @floatFromInt(tile_x + tile_y)) * 0.5,
-    // };
-    //
+pub fn tileToWorldFloat(_: *TileMap, x: f32, y: f32, z: f32) [2]f32 {
     return .{
         (x - y) * Tile.WIDTH / 2,
-        (x + y) * Tile.HEIGHT / 2,
+        (x + y) * Tile.HEIGHT / 2 - z * Tile.HEIGHT,
     };
-    // return .{ @as(f32, @floatFromInt(x)), @as(f32, @floatFromInt(y)) };
 }

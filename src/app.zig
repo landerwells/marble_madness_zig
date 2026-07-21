@@ -114,10 +114,10 @@ var accumulator: f32 = 0.0;
 pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     const app: *App = @ptrCast(@alignCast(user_data));
 
-    const frame_time: f32 = @as(f32, @floatCast(sapp.frameDuration()));
-    // if (frame_time > 0.25) {
-    //     frame_time = 0.25;
-    // }
+    var frame_time: f32 = @as(f32, @floatCast(sapp.frameDuration()));
+    if (frame_time > 0.25) {
+        frame_time = 0.25;
+    }
 
     accumulator += frame_time;
 
@@ -132,12 +132,49 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     sg.beginPass(.{ .swapchain = sglue.swapchain() });
     sg.applyPipeline(app.renderer.pip);
 
-    app.renderer.drawFromTileMap(&app.camera, &app.tile_map);
+    const view = zmath.matToArr(app.camera.view());
+    const projection = zmath.matToArr(zmath.orthographicLhGl(
+        app.camera.screen_x,
+        app.camera.screen_y,
+        -1.0,
+        1.0,
+    ));
+
+    // TODO: Make it work with 3 dimensions, need to prioritize what to draw,
+    // I'll have to get this working for right now, and then clean it up later.
+    //
+    // Jesus christ this is not even close to fast or efficient. What should I be
+    // doing to optimize?
+    for (0..app.tile_map.tiles.len) |z| {
+        for (0..app.tile_map.tiles[0].len) |y| {
+            for (0..app.tile_map.tiles[0][0].len) |x| {
+                const position = app.tile_map.tileToWorld(
+                    app.tile_map.tiles.len - x,
+                    app.tile_map.tiles.len - y,
+                    app.tile_map.tiles.len - z,
+                );
+                app.renderer.draw(
+                    &app.camera,
+                    view,
+                    projection,
+                    &app.tile_map.sprite,
+                    position,
+                    .{ 0.5, 0.5 },
+                );
+            }
+        }
+    }
 
     app.renderer.draw(
         &app.camera,
+        view,
+        projection,
         &app.marble.sprite,
-        app.marble.position,
+        app.tile_map.tileToWorldFloat(
+            app.marble.position[0],
+            app.marble.position[1],
+            app.marble.position[2],
+        ),
         app.marble.size,
     );
 

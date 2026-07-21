@@ -9,6 +9,16 @@
 // Spawn point
 // End zone
 
+const std = @import("std");
+
+const TileMap = @import("tile_map.zig");
+
 const Level = @This();
 
-const std = @import("std");
+tile_map: TileMap,
+// I believe we are going to have to keep the marble's position in f32?
+// I am not sure what makes the most sense since the marble can be in between
+// two units of tiles, but tiles can only ever be grid aligned. Not sure what
+// to make of that, will probably just store tiles in a grid, and then the function
+// that converts from tile to world will correctly get both types.
+marble_spawn: [3]f32,

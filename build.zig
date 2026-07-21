@@ -114,8 +114,7 @@ pub fn build(b: *std.Build) !void {
     exe.root_module.addIncludePath(b.path("lib"));
 
     exe.root_module.addCSourceFile(.{
-        .file = b.path("lib/stb_impl.c"),
-        .flags = &.{},
+        .file = b.path("src/stb_impl.c"),
     });
 
     // This declares intent for the executable to be installed into the
