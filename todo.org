@@ -39,5 +39,5 @@ different sections so I can get a clearer overview of what actually needs work.
 - [ ] Rename project
 - [ ] True type font support added
 - [ ] Batch rendering
-- [ ] Move dev log to this repo, continue adding content to it. Eventually break
+- [X] Move dev log to this repo, continue adding content to it. Eventually break
   it up and have some published output.

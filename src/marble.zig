@@ -23,7 +23,7 @@ accumulated_position: [2]f32 = .{ 0.0, 0.0 },
 velocity: [2]f32 = .{ 0.0, 0.0 },
 acceleration: [2]f32 = .{ 0.0, 0.0 },
 
-size: [2]f32 = .{ 1.0, 1.0 },
+size: [2]f32 = .{ 32.0, 32.0 },
 
 sprite: Sprite = Sprite{
     .offset = .{ 1.0, 4.0 },

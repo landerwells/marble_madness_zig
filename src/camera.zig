@@ -6,12 +6,12 @@ const Input = @import("input.zig");
 
 const Camera = @This();
 
+pub const VIEWPORT = .{ 320.0, 240.0 };
+
 position: [2]f32 = .{ 0.0, 0.0 },
 velocity: [2]f32 = .{ 0.0, 0.0 },
-// Not sure if we should try and keep this in pixels, or general
-// sprite units?
-screen_x: f32 = 9.0,
-screen_y: f32 = 6.0,
+screen_x: f32 = 320.0,
+screen_y: f32 = 240.0,
 
 const CAMERA_SPEED = 1.0;
 

@@ -5,16 +5,18 @@ const sapp = sokol.app;
 const Input = @This();
 
 mouse_delta: [2]f32 = .{ 0.0, 0.0 },
+mouse_x: f32 = 0.0,
+mouse_y: f32 = 0.0,
 
 left: bool = false,
 right: bool = false,
 up: bool = false,
 down: bool = false,
 
-// eventHanlder should be able to report WHERE in world coordinates the mouse
-// is, when not in a focused mode. Kind of need to hook up truetype font
-// rendering now.
 pub fn eventHanlder(self: *Input, e: *const sapp.Event) void {
+    self.mouse_x = e.mouse_x;
+    self.mouse_y = e.mouse_y;
+
     switch (e.type) {
         .MOUSE_MOVE => {
             self.mouse_delta[0] += e.mouse_dx;

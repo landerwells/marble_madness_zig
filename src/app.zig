@@ -1,22 +1,21 @@
 const std = @import("std");
 
 const sokol = @import("sokol");
-const zmath = @import("zmath");
-
 const sapp = sokol.app;
 const sg = sokol.gfx;
 const sglue = sokol.glue;
 const sfetch = sokol.fetch;
 const slog = sokol.log;
+const zmath = @import("zmath");
 
 const asset = @import("asset.zig");
-
 const Camera = @import("camera.zig");
 const Input = @import("input.zig");
-const TileMap = @import("tile_map.zig");
 const Marble = @import("marble.zig");
 const Renderer = @import("renderer.zig");
 const Sprite = @import("sprite.zig");
+const TileMap = @import("tile_map.zig");
+const utils = @import("utils.zig");
 
 const App = @This();
 
@@ -141,7 +140,10 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
     ));
 
     // Uhhh, technically the marble is supposed to be like 20 tiles high
-    std.debug.print("{any}\n", .{app.marble.position});
+    // std.debug.print("{any}\n", .{app.marble.position});
+
+    const num = utils.windowToWorld(app.input.mouse_x, app.input.mouse_y);
+    std.debug.print("{any}\n", .{num});
 
     for (0..app.tile_map.tiles.len) |z| {
         for (0..app.tile_map.tiles[0].len) |y| {
@@ -163,7 +165,7 @@ pub fn frame(user_data: ?*anyopaque) callconv(.c) void {
                     tint,
                     &app.tile_map.sprite,
                     position,
-                    .{ 0.5, 0.5 },
+                    app.tile_map.size,
                 );
             }
         }

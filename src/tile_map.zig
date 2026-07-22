@@ -42,6 +42,7 @@ const Tile = struct {
     }
 };
 
+size: [2]f32 = .{ 16.0, 16.0 },
 tiles: [Z][Y][X]Tile =
     [_][Y][X]Tile{[_][X]Tile{[_]Tile{Tile.default()} ** X} ** Y} ** Z,
 
@@ -58,7 +59,7 @@ pub fn init() TileMap {
     return .{};
 }
 
-// Not sure any of these utility functions even need to be methods
+// Do I even put these
 pub fn tileToWorld(x: usize, y: usize, z: usize) [2]f32 {
     const fx = @as(f32, @floatFromInt(x));
     const fy = @as(f32, @floatFromInt(y));
@@ -77,6 +78,7 @@ pub fn tileToWorldFloat(x: f32, y: f32, z: f32) [2]f32 {
     };
 }
 
+//
 pub fn worldToTile(
     x: f32,
     y: f32,
@@ -86,3 +88,7 @@ pub fn worldToTile(
         (x + y) * Tile.HEIGHT / 2,
     };
 }
+
+// Need to rectify pixels which are what the window is specified in
+// with world space,
+// with the isometric tilespace
